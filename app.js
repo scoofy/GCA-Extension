@@ -166,8 +166,14 @@ function replyListToHamburger() {
             let index = this.dataset.index;
             let parent = this.parentElement;
             for (elem of parent.children) {
-                if (!(elem.className.includes('active') || elem.className.includes('hideShowNavPillsList'))) {
-                    if (elem.style.visibility == 'collapse') {
+                if (!(elem.className.includes('active'))) {
+                    if (elem.className.includes('hideShowNavPillsList')) {
+                        if (elem.firstChild.textContent === "More") {
+                            elem.firstChild.textContent = "Less";
+                        } else {
+                            elem.firstChild.textContent = "More";
+                        }
+                    } else if (elem.style.visibility === 'collapse') {
                         elem.style.visibility = 'visible';
                     } else {
                         elem.style.visibility = 'collapse';
