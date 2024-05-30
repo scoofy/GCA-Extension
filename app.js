@@ -191,4 +191,30 @@ function replyListToHamburger() {
 }
 replyListToHamburger();
 
+function warningsFullVisibility() {
+    let messageContainers = document.querySelectorAll('.message_container');
+    for (container of messageContainers) {
+        let posterResponsive = container.getElementsByClassName('poster_responsive')[0];
+        let labelWarning = container.getElementsByClassName('label-warning')[0];
+        //let h4 = container.getElementsByTagName('h4')[0];
+
+        if (posterResponsive && labelWarning) {
+            //h4.style.width = "100%";
+            //h4.style.display = "flex";
+
+            posterResponsive.style.display = "flex";
+            posterResponsive.style.flexDirection = "column";
+            //posterResponsive.style.alignItems = "center";
+            posterResponsive.style.gap = "5px";
+
+            labelWarning.style.width = "fit-content";
+            labelWarning.style.marginLeft = "20px";
+
+            let br = document.createElement("br");
+            posterResponsive.appendChild(labelWarning);
+        }
+    }
+}
+warningsFullVisibility()
+
 // end of line
