@@ -1,5 +1,5 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Nice GCA",
   "version": "1.0",
   "description": "A nice way to read Golf Club Atlas's Discussion Section",
@@ -15,7 +15,4 @@
       "app.js"
     ]
   }]
-  //"permissions": [
-  //  "storage"
-  //]
 }
