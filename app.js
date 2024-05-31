@@ -39,7 +39,7 @@ var myStyle = `
     }
     `;
 myStyle = myStyle.replace(/(\r\n|\n|\r)/gm, "");
-console.log(myStyle);
+//console.log(myStyle);
 addedStyleSheet.innerText = myStyle;
 document.head.appendChild(addedStyleSheet);
 
@@ -289,15 +289,18 @@ function warningsFullVisibility() {
         }
     }
 }
-warningsFullVisibility()
+//warningsFullVisibility()
 
 
-function returnSubClassSingleton(parentElement, theClassName) {
+function returnSubClassSingleton(parentElement, theClassName, returnNull = false) {
     //console.log("returnSubClassSingleton()");
     let theElementList = parentElement.getElementsByClassName(theClassName);
     let theElement = theElementList.item(0);
     //console.log(theElement);
     if (!theElement) {
+        if (returnNull) {
+            return null;
+        }
         //console.log("STYLE!");
         theElement = document.createElement("style");
         //console.log(theElement);
@@ -305,12 +308,15 @@ function returnSubClassSingleton(parentElement, theClassName) {
     return theElement;
 }
 
-function returnSubTagSingleton(parentElement, theTagName) {
+function returnSubTagSingleton(parentElement, theTagName, returnNull = false) {
     //console.log("returnSubClassSingleton()");
     let theElementList = parentElement.getElementsByTagName(theTagName);
     let theElement = theElementList.item(0);
     //console.log(theElement);
     if (!theElement) {
+        if (returnNull) {
+            return null;
+        }
         //console.log("STYLE!");
         theElement = document.createElement("style");
         //console.log(theElement);
@@ -342,6 +348,7 @@ function formatExistingLeftColumn(leftCol) {
     if (avatar) {
         formatedLeftCol.appendChild(avatar);
     }
+
     return formatedLeftCol;
 }
 
@@ -469,7 +476,6 @@ function messageIteration(messageContainerElement) {
     right_col.style.flexShrink = 1;
     right_col.style.flexGrow = 3;
 
-
     let wide_flex = baseFlex();
     wide_flex.className = "wide_flex";
     wide_flex.style.width = '100%';
@@ -486,10 +492,11 @@ function messageIteration(messageContainerElement) {
     footer_info_col.style.width = "100%";
     footer_info_col.style.visibility = 'collapse';
 
-
     let footer_button_col = baseFlex();
     footer_button_col.className = "footer_info_col";
 
+    // get newPostWarning now, becaues the stuff it's located in will move out of the container
+    let newPostWarning = returnSubClassSingleton(messageContainerElement, 'label-warning', true);
 
     let existing_left_col = returnSubClassSingleton(messageContainerElement, "col-md-3");
     let formattedLeftCol = formatExistingLeftColumn(existing_left_col);
@@ -500,7 +507,6 @@ function messageIteration(messageContainerElement) {
     existing_right_col.style.width = "100%";
     existing_right_col.style.textAlign = 'justify';
     existing_right_col.style.textJustify = 'inter-word';
-
 
     let subject_info = returnSubClassSingleton(existing_right_col, "flow_hidden");
     addBorder(subject_info, "Indigo");
@@ -544,12 +550,24 @@ function messageIteration(messageContainerElement) {
     footer_flex.appendChild(footer_button_col);
     footer_flex.style.justifyContent = 'space-between';
 
+
     right_col.appendChild(existing_right_col);
     left_col.appendChild(formattedLeftCol);
     left_col.appendChild(signature);
     wide_flex.appendChild(left_col);
     wide_flex.appendChild(right_col);
 
+    //console.log('newPostWarning START!');
+    //console.log(newPostWarning);
+    if (newPostWarning) {
+        let newPostFlex = baseFlex();
+        newPostFlex.style.justifyContent = "center";
+        newPostFlex.appendChild(newPostWarning);
+        col_flex.appendChild(newPostFlex);
+        col_flex.style.borderLeft = "solid 4px #e99002";
+        col_flex.style.borderRadius = "2px";
+
+    }
 
 
     col_flex.appendChild(wide_flex);
