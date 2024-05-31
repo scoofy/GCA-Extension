@@ -36,8 +36,6 @@ var myStyle = `
         }
     }
     `;
-myStyle = myStyle.replace(/(\r\n|\n|\r)/gm, "");
-//console.log(myStyle);
 addedStyleSheet.innerText = myStyle;
 document.head.appendChild(addedStyleSheet);
 
