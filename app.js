@@ -175,12 +175,14 @@ function dimSignature() {
 dimSignature();
 
 function blockquoteFormatting() {
-    var blocks = document.getElementsByTagName('blockquote');
+    let blocks = document.getElementsByTagName('blockquote');
     for (block of blocks) {
+        let blockText = block.innerText;
+        console.log(blockText);
         block.style.borderLeft = "2px solid #ccc";
         block.style.marginLeft = "4px";
     }
-    var quoteHeaders = document.getElementsByClassName('quoteheader');
+    let quoteHeaders = document.getElementsByClassName('quoteheader');
     for (header of quoteHeaders) {
         header.style.marginTop = "5px";
     }
