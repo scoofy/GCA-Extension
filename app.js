@@ -56,14 +56,10 @@ function baseColFlex() {
     return base_col_flex.cloneNode();
 }
 
-function widthGreaterThanHeight(img) {
-    return (img.offsetWidth > img.offsetHeight);
-}
-
 
 
 function resizeImages() {
-    var imgs = document.getElementsByTagName('img');
+    let imgs = document.getElementsByTagName('img');
     for (elem of imgs) {
         if (elem.className != 'avatar') {
             elem.style.maxWidth = "100%";
@@ -176,11 +172,21 @@ function blockquoteFormatting() {
         block.style.borderLeft = "2px solid #ccc";
         block.style.margin = "0 0 10px 4px";
         block.style.padding = "0 0 0 4px";
+
+        blockImgs = block.getElementsByTagName('img');
+        for (img of blockImgs) {
+            img.style.maxHeight = "50px";
+            img.style.maxWidth = 'none';
+            img.style.width = 'auto';
+            img.dataset.thumbnail = 'true';
+            console.log(img)
+        }
     }
-}
-let quoteHeaders = document.getElementsByClassName('quoteheader');
-for (header of quoteHeaders) {
-    header.style.marginTop = "5px";
+
+    let quoteHeaders = document.getElementsByClassName('quoteheader');
+    for (header of quoteHeaders) {
+        header.style.marginTop = "5px";
+    }
 }
 blockquoteFormatting();
 
@@ -188,15 +194,16 @@ blockquoteFormatting();
 function removeThirdLineBreaks(element) {
     let brsToRemove = [];
     let brs = element.getElementsByTagName('br');
+    let acceptableParents = ["A", "BR", "IMG", "#text"];
     for (br of brs) {
         if (br.previousSibling) {
-            //console.log(('    ', br.previousSibling.nodeName);
-            //console.log((br.previousSibling.textContent);
-            if (!["BR", "#text"].includes(br.previousSibling.nodeName)) {
+            //console.log('    ', br.previousSibling.nodeName);
+            //console.log(br.previousSibling.textContent);
+            if (!acceptableParents.includes(br.previousSibling.nodeName)) {
                 brsToRemove.push(br);
             } else if (br.previousSibling.tagName == "BR") {
                 if (br.previousSibling.previousSibling) {
-                    if (!["BR", "#text"].includes(br.previousSibling.previousSibling.nodeName)) {
+                    if (!acceptableParents.includes(br.previousSibling.previousSibling.nodeName)) {
                         brsToRemove.push(br);
                     } else if (br.previousSibling.previousSibling.tagName == "BR") {
                         brsToRemove.push(br);
