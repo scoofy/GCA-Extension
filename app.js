@@ -2,44 +2,60 @@ var testing = false;
 var dimPercentage = "10%";
 var notablePercentage = "60%"
 
-function testingBorder(testing) {
-    if (testing) {
-        let body_list = document.getElementsByTagName('body');
-        for (elem of body_list) {
-            elem.style.border = "10px solid red";
+var body = returnSubTagSingleton(document, 'body');
+addBorder(body, 'red', px = 10);
+
+function setAvatarSizesToDataSets(bodyTag) {
+    let avatar_divs = bodyTag.getElementsByClassName('avatar');
+    for (avatar of avatar_divs) {
+        if (avatar.tagName == "IMG") {
+            //console.log('setAvatarSizesToDataSets');
+            //console.log('height:', avatar.height);
+            //console.log('width:', avatar.width);
         }
     }
 }
-testingBorder(testing);
+
+var removeBrStyleSheet = document.createElement("style");
+var removeBrStyle = `br + br + br { display: none; }`;
+removeBrStyleSheet.innerText = removeBrStyle;
+document.head.appendChild(removeBrStyleSheet);
+
+var base_flex = document.createElement("div");
+base_flex.style.display = "flex";
+base_flex.style.gap = "5px";
+base_flex.style.padding = "5px";
+addBorder(base_flex, "#ccc");
+
+var base_col_flex = base_flex.cloneNode();
+base_col_flex.style.flexDirection = "column";
+
+function baseFlex() {
+    return base_flex.cloneNode();
+}
+
+function baseColFlex() {
+    return base_col_flex.cloneNode();
+}
+
+function widthGreaterThanHeight(img) {
+    return (img.offsetWidth > img.offsetHeight);
+}
+
+
 
 function resizeImages() {
     var imgs = document.getElementsByTagName('img');
     for (elem of imgs) {
-        if (elem.className === 'avatar') {
-            elem.style.maxWidth = "100px";
-            elem.style.maxHeight = "50px";
-            elem.style.height = "auto";
-            elem.style.width = "auto";
-
-            elem.onclick = function() {
-                let parent = this.parentElement;
-                parent.removeAttribute('href');
-                if (this.style.maxWidth === "100px") {
-                    this.style.maxWidth = "100%";
-                    this.style.maxHeight = "100%";
-                } else {
-                    this.style.maxWidth = "100px";
-                    this.style.maxHeight = "50px";
-                }
-            }
-
-        } else {
+        if (elem.className != 'avatar') {
             elem.style.maxWidth = "100%";
             elem.style.height = "auto";
         }
     }
 }
 resizeImages();
+
+
 
 function minFontSize(minPxSize) {
     let elements = document.querySelectorAll('.bbc_size');
@@ -80,7 +96,7 @@ hideFatalAndClearFix();
 function dimKeyInfo() {
     let keyInfos = document.querySelectorAll('.keyinfo');
     for (keyInfo of keyInfos) {
-        keyInfo.style.opacity = dimPercentage;
+        //keyInfo.style.opacity = dimPercentage;
     }
 }
 dimKeyInfo()
@@ -105,22 +121,27 @@ function dimSignature() {
 }
 dimSignature();
 
-function blockquoteBorderLeft() {
+function blockquoteFormatting() {
     var blocks = document.getElementsByTagName('blockquote');
     for (block of blocks) {
-        block.style.borderLeft = "1px solid #ccc";
+        block.style.borderLeft = "2px solid #ccc";
+        block.style.marginLeft = "4px";
+    }
+    var quoteHeaders = document.getElementsByClassName('quoteheader');
+    for (header of quoteHeaders) {
+        header.style.marginTop = "5px";
     }
 }
-blockquoteBorderLeft();
+blockquoteFormatting();
 
 function dimLogged() {
     let modified_elements = document.querySelectorAll('.modified');
     for (elem of modified_elements) {
-        elem.style.opacity = dimPercentage;
+        //elem.style.opacity = dimPercentage;
     }
     let report_elements = document.querySelectorAll('.reportlinks');
     for (elem of report_elements) {
-        elem.style.opacity = dimPercentage;
+        //elem.style.opacity = dimPercentage;
         let imgs = elem.getElementsByTagName('img');
         for (img of imgs) {
             img.style.display = "none";
@@ -217,4 +238,294 @@ function warningsFullVisibility() {
 }
 warningsFullVisibility()
 
+
+function returnSubClassSingleton(parentElement, theClassName) {
+    //console.log("returnSubClassSingleton()");
+    let theElementList = parentElement.getElementsByClassName(theClassName);
+    let theElement = theElementList.item(0);
+    //console.log(theElement);
+    if (!theElement) {
+        //console.log("STYLE!");
+        theElement = document.createElement("style");
+        //console.log(theElement);
+    }
+    return theElement;
+}
+
+function returnSubTagSingleton(parentElement, theTagName) {
+    //console.log("returnSubClassSingleton()");
+    let theElementList = parentElement.getElementsByTagName(theTagName);
+    let theElement = theElementList.item(0);
+    //console.log(theElement);
+    if (!theElement) {
+        //console.log("STYLE!");
+        theElement = document.createElement("style");
+        //console.log(theElement);
+    }
+    return theElement;
+}
+
+function addBorder(element, color, px = 1) {
+    if (testing) {
+        if (element) {
+            element.style.border = `solid ${px}px ${color}`;
+        } else {
+            //console.log(element);
+            throw new Error("element doesn't exist");
+        }
+    }
+}
+
+function formatExistingLeftColumn(leftCol) {
+    let formatedLeftCol = baseColFlex();
+
+    let h4 = returnSubTagSingleton(leftCol, 'h4');
+    let nameSpan = leftCol.querySelector('[itemprop="name"]');
+    nameSpan.textContent = nameSpan.textContent.replace('_', ' ');
+    nameSpan.style.color = '#c06002';
+    let avatar = leftCol.querySelector('[itemprop="image"]');
+
+    formatedLeftCol.appendChild(h4);
+    if (avatar) {
+        formatedLeftCol.appendChild(avatar);
+    }
+    return formatedLeftCol;
+}
+
+function calculateImgAspectRatioFit(img) {
+    //console.log('calculateImgAspectRatioFit(img)');
+    //console.log('THIS SHOULD ALWAYS BE AN IMAGE:')
+    //console.log(img);
+    //console.log(img.style.height);
+    //console.log(img.naturalHeight);
+
+    let srcWidth = img.naturalWidth;
+    //console.log('srcWidth:', srcWidth);
+
+    if (!srcWidth) {
+        //console.log('naturalWidth FAIL')
+        srcWidth = parseInt(img.style.width);
+        //console.log('style width:', srcWidth);
+    }
+    if (!srcWidth) {
+        return
+    }
+
+    let srcHeight = img.naturalHeight;
+    if (!srcHeight) {
+        srcHeight = parseInt(img.style.height);
+    }
+
+    let maxWidth = 100;
+    let maxHeight = 50;
+
+    //console.log(srcWidth, srcHeight, maxWidth, maxHeight);
+
+    let ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+
+    let ratioObj = {
+        width: srcWidth * ratio || 500,
+        height: srcHeight * ratio || 500,
+    };
+    //console.log('ratioObj:', ratioObj);
+
+
+    return ratioObj;
+}
+
+function thisResizeCalculation() {
+    this.maxWidth = 'none';
+    this.style.maxWidth = 'none';
+    this.style.maxHeight = 'none';
+    //console.log('this.dataset.thumbnail == false')
+    //console.log(this.dataset.thumbnail)
+    //console.log(this.dataset.thumbnail == false)
+    if (this.dataset.thumbnail == "false") {
+        aspect = calculateImgAspectRatioFit(this);
+        if (aspect) {
+            this.style.width = `${aspect.width}px`;
+            this.style.height = `${aspect.height}px`;
+            this.dataset.thumbnail = 'true';
+        }
+    } else {
+        this.style.width = `${this.naturalWidth}px`;
+        this.style.height = `${this.naturalHeight}px`;
+        this.dataset.thumbnail = 'false';
+    }
+    //console.log(this);
+}
+
+function resizeCalculation(img) {
+    img.maxWidth = 'none';
+    img.style.maxWidth = 'none';
+    img.style.maxHeight = 'none';
+    //console.log('this.dataset.thumbnail == false')
+    //console.log(img.dataset.thumbnail)
+    //console.log(img.dataset.thumbnail == false)
+    if (img.dataset.thumbnail == "false") {
+        aspect = calculateImgAspectRatioFit(img);
+        if (aspect) {
+            img.style.width = `${aspect.width}px`;
+            img.style.height = `${aspect.height}px`;
+            img.dataset.thumbnail = 'true';
+        }
+    } else {
+        img.style.width = `${img.naturalWidth}px`;
+        img.style.height = `${img.naturalHeight}px`;
+        img.dataset.thumbnail = 'false';
+    }
+    //console.log(img);
+}
+
+
+function resizeAvatar(messageContainerElement) {
+    let avatar_divs = messageContainerElement.getElementsByClassName('avatar');
+    for (avatar of avatar_divs) {
+        if (avatar.tagName == "IMG") {
+            avatar.dataset.thumbnail = 'false';
+            // this is quite complex
+            // i can't get this to work without:
+            //    running the function
+            //    then passing a this-based function to run onload
+            //    then having the this-based function fire onclick
+            // but somehow this works!
+            resizeCalculation(avatar);
+            avatar.onload = thisResizeCalculation;
+            avatar.onclick = thisResizeCalculation;
+        }
+    }
+}
+
+
+function messageIteration(messageContainerElement) {
+    // class = "windowbg row message_container"
+    // or
+    // class = "windowbg2 row message_container"
+
+    let col_flex = baseColFlex();
+    col_flex.className = messageContainerElement.className;
+    addBorder(col_flex, 'black');
+
+    let left_col = baseColFlex();
+    left_col.className = "new_left_col"
+    left_col.style.width = 'fit-content';
+    left_col.style.flexShrink = 3;
+    let right_col = baseColFlex();
+    right_col.className = "new_right_col"
+    right_col.style.maxWidth = '75%';
+    right_col.style.flexShrink = 1;
+    right_col.style.flexGrow = 3;
+
+
+    let wide_flex = baseFlex();
+    wide_flex.className = "wide_flex";
+    wide_flex.style.width = '100%';
+    wide_flex.style.justifyContent = "space-between";
+    addBorder(wide_flex, 'red');
+
+    let footer_flex = baseFlex();
+    footer_flex.className = "footer_flex";
+    footer_flex.style.justifyContent = "flex-end";
+    addBorder(footer_flex, 'green');
+
+    let footer_info_col = baseColFlex();
+    footer_info_col.className = "footer_info_col";
+    footer_info_col.style.width = "100%";
+    footer_info_col.style.visibility = 'collapse';
+
+
+    let footer_button_col = baseFlex();
+    footer_button_col.className = "footer_info_col";
+
+
+    let existing_left_col = returnSubClassSingleton(messageContainerElement, "col-md-3");
+    let formattedLeftCol = formatExistingLeftColumn(existing_left_col);
+    addBorder(formattedLeftCol, 'DarkOliveGreen');
+
+    let existing_right_col = returnSubClassSingleton(messageContainerElement, "col-md-9");
+    addBorder(existing_right_col, 'MistyRose');
+    existing_right_col.style.width = "100%";
+    existing_right_col.style.textAlign = 'justify';
+    existing_right_col.style.textJustify = 'inter-word';
+
+
+    let subject_info = returnSubClassSingleton(existing_right_col, "flow_hidden");
+    addBorder(subject_info, "Indigo");
+    let keyinfo = returnSubClassSingleton(existing_right_col, "keyinfo");
+    keyinfo.style.width = "100%";
+    addBorder(keyinfo, "Tomato");
+
+    let moderation = returnSubClassSingleton(existing_right_col, "moderatorbar");
+    addBorder(moderation, "Salmon");
+    let signature = returnSubClassSingleton(existing_right_col, "signature");
+    signature.style.width = '100%';
+    addBorder(signature, "Fuchsia");
+    let buttons = returnSubClassSingleton(subject_info, "quickbuttons2");
+    buttons.style.display = "flex";
+    buttons.style.gap = "10px";
+    buttons.style.justifyContent = 'center';
+    buttons.style.alignItems = 'flex-start';
+    buttons.style.flexWrap = "no-wrap";
+    addBorder(buttons, "BurlyWood");
+
+    let firstButton = returnSubTagSingleton(buttons, "a");
+    let newButton = firstButton.cloneNode();
+    //console.log(newButton);
+    newButton.removeAttribute("href");
+    newButton.textContent = "Info";
+    newButton.onclick = function() {
+        if (footer_info_col.style.visibility == 'visible') {
+            footer_info_col.style.visibility = 'collapse';
+        } else {
+            footer_info_col.style.visibility = 'visible';
+        }
+    }
+    buttons.appendChild(newButton);
+
+    footer_info_col.appendChild(subject_info);
+    footer_info_col.appendChild(moderation);
+    footer_button_col.appendChild(buttons);
+    footer_button_col.style.flexWrap = "no-wrap";
+
+    footer_flex.appendChild(footer_info_col);
+    footer_flex.appendChild(footer_button_col);
+    footer_flex.style.justifyContent = 'space-between';
+
+    right_col.appendChild(existing_right_col);
+    left_col.appendChild(formattedLeftCol);
+    left_col.appendChild(signature);
+    wide_flex.appendChild(left_col);
+    wide_flex.appendChild(right_col);
+
+
+
+    col_flex.appendChild(wide_flex);
+    col_flex.appendChild(footer_flex);
+
+    resizeAvatar(col_flex);
+    return col_flex;
+}
+
+function forumIteration() {
+    forumPosts = document.getElementById('forumposts');
+    if (!forumPosts) {
+        return
+    }
+    forumPosts.style.display = "flex";
+    forumPosts.style.flexDirection = "column";
+    forumPosts.style.gap = "10px";
+
+
+    forumForm = document.getElementById('quickModForm');
+    messages = document.querySelectorAll('.message_container');
+    //console.log(forumForm);
+
+    forumPosts.replaceChildren();
+    for (const [i, message] of messages.entries()) {
+        let formattedMessage = messageIteration(message);
+        forumPosts.appendChild(formattedMessage);
+    }
+
+}
+forumIteration();
 // end of line
