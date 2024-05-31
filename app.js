@@ -17,7 +17,7 @@ function setAvatarSizesToDataSets(bodyTag) {
 }
 
 var removeBrStyleSheet = document.createElement("style");
-var removeBrStyle = `br + br + br { display: none; }`;
+var removeBrStyle = `blockquote > br + br { display: none; }`;
 removeBrStyleSheet.innerText = removeBrStyle;
 document.head.appendChild(removeBrStyleSheet);
 
@@ -57,19 +57,50 @@ resizeImages();
 
 
 
-function minFontSize(minPxSize) {
+function minFontSize(minPxSize = 10, minEmSize = 0.8) {
     let elements = document.querySelectorAll('.bbc_size');
     for (elem of elements) {
         let fontSize = elem.style.fontSize;
+        console.log('fontSize:', fontSize);
         if (fontSize.endsWith('px')) {
             let sizeNum = parseInt(fontSize.slice(0, -2));
             if (sizeNum < minPxSize) {
                 elem.style.fontSize = `${minPxSize}px`;
             }
         }
+        if (fontSize.endsWith('em')) {
+            let sizeNum = parseFloat(fontSize.slice(0, -2));
+            if (sizeNum < minEmSize) {
+                elem.style.fontSize = `${minEmSize}em`;
+            }
+        }
     }
 }
-minFontSize(10);
+minFontSize();
+
+function maxFontSize(maxPxSize = 16, maxEmSize = 1.1) {
+    let elements = document.querySelectorAll('.bbc_size');
+    for (elem of elements) {
+        let fontSize = elem.style.fontSize;
+        console.log('fontSize:', fontSize);
+        if (fontSize.endsWith('px')) {
+            let sizeNum = parseInt(fontSize.slice(0, -2));
+            console.log('sizeNum:', sizeNum);
+
+            if (sizeNum > maxPxSize) {
+                elem.style.fontSize = `${maxPxSize}px`;
+            }
+        }
+        if (fontSize.endsWith('em')) {
+            let sizeNum = parseFloat(fontSize.slice(0, -2));
+            console.log('sizeNum:', sizeNum);
+            if (sizeNum > maxEmSize) {
+                elem.style.fontSize = `${maxEmSize}em`;
+            }
+        }
+    }
+}
+maxFontSize();
 
 
 function hideNewbie() {
