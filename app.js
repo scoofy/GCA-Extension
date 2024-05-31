@@ -16,10 +16,32 @@ function setAvatarSizesToDataSets(bodyTag) {
     }
 }
 
-var removeBrStyleSheet = document.createElement("style");
-var removeBrStyle = `blockquote > br + br { display: none; }`;
-removeBrStyleSheet.innerText = removeBrStyle;
-document.head.appendChild(removeBrStyleSheet);
+var addedStyleSheet = document.createElement("style");
+var myStyle = `
+    blockquote > br + br {
+        display: none;
+    }
+    @media screen and (max-width: 575px), (max-device-width: 575px), (pointer: coarse) {
+        .wide_flex {
+            flex-direction: column;
+            justify-content: center;
+        }
+        .signature {
+            visibility: collapse;
+        }
+        .new_right_col {
+            min-width: 100%;
+            width: 100%;
+            flex-shrink: 1;
+            flex-grow: 1;
+            padding: 0;
+        }
+    }
+    `;
+myStyle = myStyle.replace(/(\r\n|\n|\r)/gm, "");
+console.log(myStyle);
+addedStyleSheet.innerText = myStyle;
+document.head.appendChild(addedStyleSheet);
 
 var base_flex = document.createElement("div");
 base_flex.style.display = "flex";
@@ -61,7 +83,7 @@ function minFontSize(minPxSize = 10, minEmSize = 0.8) {
     let elements = document.querySelectorAll('.bbc_size');
     for (elem of elements) {
         let fontSize = elem.style.fontSize;
-        console.log('fontSize:', fontSize);
+        //console.log('fontSize:', fontSize);
         if (fontSize.endsWith('px')) {
             let sizeNum = parseInt(fontSize.slice(0, -2));
             if (sizeNum < minPxSize) {
@@ -82,10 +104,10 @@ function maxFontSize(maxPxSize = 16, maxEmSize = 1.1) {
     let elements = document.querySelectorAll('.bbc_size');
     for (elem of elements) {
         let fontSize = elem.style.fontSize;
-        console.log('fontSize:', fontSize);
+        //console.log('fontSize:', fontSize);
         if (fontSize.endsWith('px')) {
             let sizeNum = parseInt(fontSize.slice(0, -2));
-            console.log('sizeNum:', sizeNum);
+            //console.log('sizeNum:', sizeNum);
 
             if (sizeNum > maxPxSize) {
                 elem.style.fontSize = `${maxPxSize}px`;
@@ -93,7 +115,7 @@ function maxFontSize(maxPxSize = 16, maxEmSize = 1.1) {
         }
         if (fontSize.endsWith('em')) {
             let sizeNum = parseFloat(fontSize.slice(0, -2));
-            console.log('sizeNum:', sizeNum);
+            //console.log('sizeNum:', sizeNum);
             if (sizeNum > maxEmSize) {
                 elem.style.fontSize = `${maxEmSize}em`;
             }
