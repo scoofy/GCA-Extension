@@ -18,9 +18,7 @@ function setAvatarSizesToDataSets(bodyTag) {
 
 var addedStyleSheet = document.createElement("style");
 var myStyle = `
-    blockquote > br + br {
-        display: none;
-    }
+
     @media screen and (max-width: 575px), (max-device-width: 575px), (pointer: coarse) {
         .wide_flex {
             flex-direction: column;
@@ -177,17 +175,46 @@ dimSignature();
 function blockquoteFormatting() {
     let blocks = document.getElementsByTagName('blockquote');
     for (block of blocks) {
-        let blockText = block.innerText;
-        console.log(blockText);
         block.style.borderLeft = "2px solid #ccc";
-        block.style.marginLeft = "4px";
-    }
-    let quoteHeaders = document.getElementsByClassName('quoteheader');
-    for (header of quoteHeaders) {
-        header.style.marginTop = "5px";
+        block.style.margin = "0 0 10px 4px";
+        block.style.padding = "0 0 0 4px";
     }
 }
+let quoteHeaders = document.getElementsByClassName('quoteheader');
+for (header of quoteHeaders) {
+    header.style.marginTop = "5px";
+}
 blockquoteFormatting();
+
+
+function removeThirdLineBreaks(element) {
+    let brsToRemove = [];
+    let brs = element.getElementsByTagName('br');
+    for (br of brs) {
+        if (br.previousSibling) {
+            console.log('    ', br.previousSibling.nodeName);
+            console.log(br.previousSibling.textContent);
+            if (!["BR", "#text"].includes(br.previousSibling.nodeName)) {
+                brsToRemove.push(br);
+            } else if (br.previousSibling.tagName == "BR") {
+                if (br.previousSibling.previousSibling) {
+                    if (!["BR", "#text"].includes(br.previousSibling.previousSibling.nodeName)) {
+                        brsToRemove.push(br);
+                    } else if (br.previousSibling.previousSibling.tagName == "BR") {
+                        brsToRemove.push(br);
+                    }
+                } else {
+                    brsToRemove.push(br);
+                }
+            }
+        } else {
+            brsToRemove.push(br);
+        }
+    }
+    for (br of brsToRemove) {
+        br.remove()
+    }
+}
 
 function dimLogged() {
     let modified_elements = document.querySelectorAll('.modified');
@@ -510,6 +537,10 @@ function messageIteration(messageContainerElement) {
     existing_right_col.style.textAlign = 'justify';
     existing_right_col.style.textJustify = 'inter-word';
 
+    let post = returnSubClassSingleton(existing_right_col, "postarea");
+    removeThirdLineBreaks(post);
+
+
     let subject_info = returnSubClassSingleton(existing_right_col, "flow_hidden");
     addBorder(subject_info, "Indigo");
     let keyinfo = returnSubClassSingleton(existing_right_col, "keyinfo");
@@ -526,8 +557,9 @@ function messageIteration(messageContainerElement) {
     buttons.style.gap = "10px";
     buttons.style.justifyContent = 'center';
     buttons.style.alignItems = 'flex-start';
-    buttons.style.flexWrap = "no-wrap";
+    buttons.style.flexWrap = "nowrap";
     addBorder(buttons, "BurlyWood");
+
 
     let firstButton = returnSubTagSingleton(buttons, "a");
     let newButton = firstButton.cloneNode();
@@ -546,14 +578,14 @@ function messageIteration(messageContainerElement) {
     footer_info_col.appendChild(subject_info);
     footer_info_col.appendChild(moderation);
     footer_button_col.appendChild(buttons);
-    footer_button_col.style.flexWrap = "no-wrap";
+    footer_button_col.style.flexWrap = "nowrap";
 
     footer_flex.appendChild(footer_info_col);
     footer_flex.appendChild(footer_button_col);
     footer_flex.style.justifyContent = 'space-between';
 
 
-    right_col.appendChild(existing_right_col);
+    right_col.appendChild(post);
     left_col.appendChild(formattedLeftCol);
     left_col.appendChild(signature);
     wide_flex.appendChild(left_col);

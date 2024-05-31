@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Nice GCA",
-  "version": "1.1",
+  "version": "1.2",
   "description": "A nicer way to read Golf Club Atlas's Discussion Section. The extension rearranges much of the archaic HTML on the discussion forum, and adds some functionality to hide and expand lesser-used options on the discussion forum.",
   "icons": {
     "64": "icons/favicon.ico"
