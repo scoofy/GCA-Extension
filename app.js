@@ -192,8 +192,8 @@ function removeThirdLineBreaks(element) {
     let brs = element.getElementsByTagName('br');
     for (br of brs) {
         if (br.previousSibling) {
-            console.log('    ', br.previousSibling.nodeName);
-            console.log(br.previousSibling.textContent);
+            //console.log(('    ', br.previousSibling.nodeName);
+            //console.log((br.previousSibling.textContent);
             if (!["BR", "#text"].includes(br.previousSibling.nodeName)) {
                 brsToRemove.push(br);
             } else if (br.previousSibling.tagName == "BR") {
