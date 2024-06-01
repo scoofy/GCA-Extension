@@ -162,6 +162,12 @@ function maxFontSize(maxPxSize = 16, maxEmSize = 1.1) {
     }
 }
 
+function removeCustomTypefaces() {
+    let elements = document.querySelectorAll('.bbc_font');
+    for (elem of elements) {
+        elem.style.fontFamily = `"Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif`;
+    }
+}
 
 function hideNewbie() {
     let classesToHide = ['.postgroup', '.stars', '.karma'];
@@ -919,6 +925,7 @@ function fullPageIteration() {
     resizeImages();
     minFontSize();
     maxFontSize();
+    removeCustomTypefaces();
     hideFatalAndClearFix();
     hideNewbie();
     hideMessageIcons();
