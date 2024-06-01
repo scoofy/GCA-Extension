@@ -2,11 +2,42 @@ var testing = false;
 var dimPercentage = "10%";
 var notablePercentage = "60%"
 
+function timeDifference(current, previous) {
+    var msPerMinute = 60 * 1000;
+    var msPerHour = msPerMinute * 60;
+    var msPerDay = msPerHour * 24;
+    var msPerMonth = msPerDay * 30;
+    var msPerYear = msPerDay * 365;
+    var elapsed = current - previous;
+    if (elapsed < msPerMinute) {
+        return Math.round(elapsed / 1000) + ' seconds ago';
+    } else if (elapsed < msPerHour) {
+        return Math.round(elapsed / msPerMinute) + ' minutes ago';
+    } else if (elapsed < msPerDay) {
+        return Math.round(elapsed / msPerHour) + ' hours ago';
+    } else if (elapsed < msPerMonth) {
+        return Math.round(elapsed / msPerDay) + ' days ago';
+    } else if (elapsed < msPerYear) {
+        return Math.round(elapsed / msPerMonth) + ' months ago';
+    } else {
+        return Math.round(elapsed / msPerYear) + ' years ago';
+    }
+}
+
+
 var body = returnSubTagSingleton(document, 'body');
 body.style.display = "flex";
 body.style.flexDirection = "column";
 body.style.justifyContent = "space-between";
 addBorder(body, 'red', px = 10);
+
+var dateForm = document.getElementById('search_form');
+var dateText = dateForm.textContent.replace('Search', '').replace('|  Calendar', '').trim();
+console.log(dateText);
+var relativeTimeNow = new Date(Date.parse(dateText));
+console.log(relativeTimeNow);
+console.log(relativeTimeNow.toString());
+console.log(relativeTimeNow.toUTCString());
 
 function setAvatarSizesToDataSets(bodyTag) {
     let avatar_divs = bodyTag.getElementsByClassName('avatar');
@@ -379,16 +410,32 @@ function addBorder(element, color, px = 1) {
     }
 }
 
-function formatExistingLeftColumn(leftCol) {
+function formatExistingLeftColumn(leftCol, postTimeAgo) {
     let formatedLeftCol = baseColFlex();
 
     let h4 = returnSubTagSingleton(leftCol, 'h4');
+    h4.style.marginBottom = "0";
+    `display: block;
+    font - size: 1 em;
+    margin - top: 1.33 em;
+    margin - bottom: 1.33 em;
+    margin - left: 0;
+    margin - right: 0;
+    font - weight: bold;`
     let nameSpan = leftCol.querySelector('[itemprop="name"]');
     nameSpan.textContent = nameSpan.textContent.replace('_', ' ');
     nameSpan.style.color = '#c06002';
     let avatar = leftCol.querySelector('[itemprop="image"]');
 
     formatedLeftCol.appendChild(h4);
+    let postTimeDiv = document.createElement('div');
+    postTimeDiv.textContent = postTimeAgo;
+    postTimeDiv.style.fontSize = "70%";
+    postTimeDiv.style.opacity = notablePercentage;
+    postTimeDiv.style.margin = "-5px 0 5px 1px";
+    formatedLeftCol.appendChild(postTimeDiv);
+
+
     if (avatar) {
         formatedLeftCol.appendChild(avatar);
     }
@@ -500,11 +547,66 @@ function resizeAvatar(messageContainerElement) {
     }
 }
 
+function postTimeStrToDateObj(postTimeStr) {
+    if (postTimeStr.startsWith("Today at")) {
+        let month = relativeTimeNow.getMonth();
+        let day = relativeTimeNow.getDate();
+        let year = relativeTimeNow.getFullYear();
+        postTimeStr = postTimeStr.replace("Today at ", '')
+        let timeAndAMPM = postTimeStr.split(' ')
+        let timeStr = timeAndAMPM[0];
+        let amPM = timeAndAMPM[1];
+        let timeSplit = timeStr.split(':')
+        let hour = parseInt(timeSplit[0]);
+        let min = parseInt(timeSplit[1]);
+        let sec = parseInt(timeSplit[2]);
+        if (amPM == "PM") {
+            hour = hour + 12;
+        }
+        console.log(year, month, day, hour, min, sec, 0);
+        let relativeTimeOfPost = new Date(Date.UTC(year, month, day, hour, min, sec, 0));
+        //console.log("")
+        //console.log(postTimeStr);
+        console.log('relativeTimeOfPost UTC:');
+        //console.log(relativeTimeOfPost);
+        return relativeTimeOfPost;
+    } else {
+        let relativeTimeOfPost = new Date(Date.parse(postTimeStr));
+        //console.log("")
+        //console.log(postTimeStr);
+        console.log('relativeTimeOfPost Parse:');
+        //console.log(relativeTimeOfPost);
+        return relativeTimeOfPost;
+    }
+}
+
+function returnPostDateObj(messageContainerElement) {
+    let keyInfoDiv = returnSubClassSingleton(messageContainerElement, "keyinfo");
+    let smallTextDiv = returnSubClassSingleton(keyInfoDiv, "smalltext");
+    //console.log(smallTextDiv.textContent);
+    let afterFirstColon = smallTextDiv.textContent.substring(smallTextDiv.textContent.indexOf(':') + 1);
+    //console.log(afterFirstColon);
+    let postTimeStr = afterFirstColon.replace('»', '').trim();
+    let relativeTimeOfPost = postTimeStrToDateObj(postTimeStr);
+    return relativeTimeOfPost;
+}
+
+function returnPostTimeAgo(messageContainerElement) {
+    let relativeTimeOfPost = returnPostDateObj(messageContainerElement);
+    console.log("Now :", relativeTimeNow);
+    console.log("Then:", relativeTimeOfPost);
+    console.log(relativeTimeNow > relativeTimeOfPost);
+    let timeAgo = timeDifference(relativeTimeNow, relativeTimeOfPost);
+    return timeAgo;
+}
 
 function messageIteration(messageContainerElement) {
     // class = "windowbg row message_container"
     // or
     // class = "windowbg2 row message_container"
+    let postTimeAgo = returnPostTimeAgo(messageContainerElement);
+    console.log('postTimeAgo:');
+    console.log(postTimeAgo);
 
     let col_flex = baseColFlex();
     col_flex.className = messageContainerElement.className;
@@ -543,7 +645,7 @@ function messageIteration(messageContainerElement) {
     let newPostWarning = returnSubClassSingleton(messageContainerElement, 'label-warning', true);
 
     let existing_left_col = returnSubClassSingleton(messageContainerElement, "col-md-3");
-    let formattedLeftCol = formatExistingLeftColumn(existing_left_col);
+    let formattedLeftCol = formatExistingLeftColumn(existing_left_col, postTimeAgo);
     addBorder(formattedLeftCol, 'DarkOliveGreen');
 
     let existing_right_col = returnSubClassSingleton(messageContainerElement, "col-md-9");
@@ -748,7 +850,7 @@ function cleanerPageBar() {
 
     pageBars = document.getElementsByClassName("pagesection");
     for (pageBar of pageBars) {
-        console.log(pageBar)
+        //console.log(pageBar)
         addBorder(pageBar, 'orange');
         pageBar.style.width = '100%';
         pageBar.style.margin = "15px 0";
@@ -764,8 +866,8 @@ function cleanerPageBar() {
         newH5.appendChild(newTitleAnchor);
         newH5.style.order = 1;
         newH5.style.fontWeight = 'bold';
-        console.log('newH5');
-        console.log(newH5);
+        //console.log('newH5');
+        //console.log(newH5);
         pageBar.appendChild(newH5);
 
 
