@@ -2,26 +2,40 @@ var testing = false;
 var dimPercentage = "10%";
 var notablePercentage = "60%"
 
+
+var msPerMinute = 60 * 1000;
+var msPerHour = msPerMinute * 60;
+var msPerDay = msPerHour * 24;
+var msPerMonth = msPerDay * 30;
+var msPerYear = msPerDay * 365;
+
 function timeDifference(current, previous) {
-    var msPerMinute = 60 * 1000;
-    var msPerHour = msPerMinute * 60;
-    var msPerDay = msPerHour * 24;
-    var msPerMonth = msPerDay * 30;
-    var msPerYear = msPerDay * 365;
     var elapsed = current - previous;
+    let time = 0;
+    let unit = '';
     if (elapsed < msPerMinute) {
-        return Math.round(elapsed / 1000) + ' seconds ago';
+        time = Math.round(elapsed / 1000);
+        units = 'second';
     } else if (elapsed < msPerHour) {
-        return Math.round(elapsed / msPerMinute) + ' minutes ago';
+        time = Math.round(elapsed / msPerMinute);
+        unit = 'minute';
     } else if (elapsed < msPerDay) {
-        return Math.round(elapsed / msPerHour) + ' hours ago';
+        time = Math.round(elapsed / msPerHour);
+        unit = 'hour';
     } else if (elapsed < msPerMonth) {
-        return Math.round(elapsed / msPerDay) + ' days ago';
+        time = Math.round(elapsed / msPerDay);
+        unit = 'day';
     } else if (elapsed < msPerYear) {
-        return Math.round(elapsed / msPerMonth) + ' months ago';
+        time = Math.round(elapsed / msPerMonth);
+        unit = 'month';
     } else {
-        return Math.round(elapsed / msPerYear) + ' years ago';
+        time = Math.round(elapsed / msPerYear);
+        unit = 'year';
     }
+    if (!(time == 1)) {
+        unit = unit + "s";
+    }
+    return `${time} ${unit} ago`;
 }
 
 
@@ -32,9 +46,9 @@ body.style.justifyContent = "space-between";
 addBorder(body, 'red', px = 10);
 
 var dateForm = document.getElementById('search_form');
-var dateText = dateForm.textContent.replace('Search', '').replace('|  Calendar', '').trim();
-console.log(dateText);
-var relativeTimeNow = new Date(Date.parse(dateText));
+var dateTextNow = dateForm.textContent.replace('Search', '').replace('|  Calendar', '').trim();
+console.log(dateTextNow);
+var relativeTimeNow = new Date(Date.parse(dateTextNow));
 console.log(relativeTimeNow);
 console.log(relativeTimeNow.toString());
 console.log(relativeTimeNow.toUTCString());
@@ -415,13 +429,10 @@ function formatExistingLeftColumn(leftCol, postTimeAgo) {
 
     let h4 = returnSubTagSingleton(leftCol, 'h4');
     h4.style.marginBottom = "0";
-    `display: block;
-    font - size: 1 em;
-    margin - top: 1.33 em;
-    margin - bottom: 1.33 em;
-    margin - left: 0;
-    margin - right: 0;
-    font - weight: bold;`
+    h4.style.marginLeft = "0";
+    h4.style.paddingBottom = "0";
+    h4.style.paddingLeft = "0";
+
     let nameSpan = leftCol.querySelector('[itemprop="name"]');
     nameSpan.textContent = nameSpan.textContent.replace('_', ' ');
     nameSpan.style.color = '#c06002';
@@ -432,7 +443,7 @@ function formatExistingLeftColumn(leftCol, postTimeAgo) {
     postTimeDiv.textContent = postTimeAgo;
     postTimeDiv.style.fontSize = "70%";
     postTimeDiv.style.opacity = notablePercentage;
-    postTimeDiv.style.margin = "-5px 0 5px 1px";
+    postTimeDiv.style.margin = "0 0 5px 1px";
     formatedLeftCol.appendChild(postTimeDiv);
 
 
@@ -548,34 +559,32 @@ function resizeAvatar(messageContainerElement) {
 }
 
 function postTimeStrToDateObj(postTimeStr) {
-    if (postTimeStr.startsWith("Today at")) {
-        let month = relativeTimeNow.getMonth();
-        let day = relativeTimeNow.getDate();
-        let year = relativeTimeNow.getFullYear();
-        postTimeStr = postTimeStr.replace("Today at ", '')
-        let timeAndAMPM = postTimeStr.split(' ')
-        let timeStr = timeAndAMPM[0];
-        let amPM = timeAndAMPM[1];
-        let timeSplit = timeStr.split(':')
-        let hour = parseInt(timeSplit[0]);
-        let min = parseInt(timeSplit[1]);
-        let sec = parseInt(timeSplit[2]);
-        if (amPM == "PM") {
-            hour = hour + 12;
+    if (postTimeStr.startsWith("Today at") || postTimeStr.startsWith("Yesterday at")) {
+        //console.log('postTimeStr', postTimeStr);
+        let cloneOfRelativeTimeNow = structuredClone(relativeTimeNow);
+        if (postTimeStr.startsWith("Yesterday at")) {
+            cloneOfRelativeTimeNow.setTime(cloneOfRelativeTimeNow.getTime() - (1 * msPerDay));
         }
-        console.log(year, month, day, hour, min, sec, 0);
-        let relativeTimeOfPost = new Date(Date.UTC(year, month, day, hour, min, sec, 0));
-        //console.log("")
-        //console.log(postTimeStr);
-        console.log('relativeTimeOfPost UTC:');
+        let month = cloneOfRelativeTimeNow.toLocaleString('default', {
+            month: 'long'
+        });
+        //console.log(month);
+        //let month = cloneOfRelativeTimeNow.getMonth();
+        let day = cloneOfRelativeTimeNow.getDate();
+        let year = cloneOfRelativeTimeNow.getFullYear();
+        postTimeStr = postTimeStr.replace("Today at ", '').replace("Yesterday at", "").trim();
+
+        let timeToParse = `${month} ${day}, ${year}, ${postTimeStr}`
+        //console.log('timeToParse');
+        //console.log(timeToParse);
+
+        let relativeTimeOfPost = new Date(Date.parse(timeToParse));
         //console.log(relativeTimeOfPost);
         return relativeTimeOfPost;
     } else {
         let relativeTimeOfPost = new Date(Date.parse(postTimeStr));
         //console.log("")
         //console.log(postTimeStr);
-        console.log('relativeTimeOfPost Parse:');
-        //console.log(relativeTimeOfPost);
         return relativeTimeOfPost;
     }
 }
@@ -593,9 +602,17 @@ function returnPostDateObj(messageContainerElement) {
 
 function returnPostTimeAgo(messageContainerElement) {
     let relativeTimeOfPost = returnPostDateObj(messageContainerElement);
-    console.log("Now :", relativeTimeNow);
-    console.log("Then:", relativeTimeOfPost);
-    console.log(relativeTimeNow > relativeTimeOfPost);
+
+
+
+    //console.log("Then:", relativeTimeOfPost);
+
+    //console.log("")
+    //console.log(dateTextNow);
+    //console.log("Now :", relativeTimeNow);
+
+    //console.log(relativeTimeNow > relativeTimeOfPost);
+
     let timeAgo = timeDifference(relativeTimeNow, relativeTimeOfPost);
     return timeAgo;
 }
@@ -605,8 +622,8 @@ function messageIteration(messageContainerElement) {
     // or
     // class = "windowbg2 row message_container"
     let postTimeAgo = returnPostTimeAgo(messageContainerElement);
-    console.log('postTimeAgo:');
-    console.log(postTimeAgo);
+    //console.log('postTimeAgo:');
+    //console.log(postTimeAgo);
 
     let col_flex = baseColFlex();
     col_flex.className = messageContainerElement.className;
@@ -656,6 +673,7 @@ function messageIteration(messageContainerElement) {
 
     let post = returnSubClassSingleton(existing_right_col, "postarea");
     removeThirdLineBreaks(post);
+    //console.log(post.textContent);
 
 
     let subject_info = returnSubClassSingleton(existing_right_col, "flow_hidden");
