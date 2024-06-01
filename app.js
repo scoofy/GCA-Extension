@@ -47,11 +47,7 @@ addBorder(body, 'red', px = 10);
 
 var dateForm = document.getElementById('search_form');
 var dateTextNow = dateForm.textContent.replace('Search', '').replace('|  Calendar', '').trim();
-console.log(dateTextNow);
 var relativeTimeNow = new Date(Date.parse(dateTextNow));
-console.log(relativeTimeNow);
-console.log(relativeTimeNow.toString());
-console.log(relativeTimeNow.toUTCString());
 
 function setAvatarSizesToDataSets(bodyTag) {
     let avatar_divs = bodyTag.getElementsByClassName('avatar');
