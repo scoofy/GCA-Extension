@@ -227,6 +227,15 @@ function blockquoteFormatting() {
     let quoteHeaders = document.getElementsByClassName('quoteheader');
     for (header of quoteHeaders) {
         header.style.marginTop = "5px";
+        let headerTitleAnchor = returnSubTagSingleton(header, "a");
+        if (headerTitleAnchor.textContent.includes(' on ')) {
+            let headerTitleSplit = headerTitleAnchor.textContent.split(' on ');
+            let quoteFromName = headerTitleSplit[0];
+            let quoteDate = headerTitleSplit[1];
+            let relativeTimeOfPost = postTimeStrToDateObj(quoteDate);
+            let timeAgo = timeDifference(relativeTimeNow, relativeTimeOfPost);
+            headerTitleAnchor.textContent = `${quoteFromName} about ${timeAgo}`;
+        }
     }
 }
 
