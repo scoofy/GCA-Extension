@@ -3,6 +3,9 @@ var dimPercentage = "10%";
 var notablePercentage = "60%"
 
 var body = returnSubTagSingleton(document, 'body');
+body.style.display = "flex";
+body.style.flexDirection = "column";
+body.style.justifyContent = "space-between";
 addBorder(body, 'red', px = 10);
 
 function setAvatarSizesToDataSets(bodyTag) {
@@ -18,7 +21,12 @@ function setAvatarSizesToDataSets(bodyTag) {
 
 var addedStyleSheet = document.createElement("style");
 var myStyle = `
-
+    .container {
+        min-height: 0px !important;
+    }
+    .hideShowNavPillsList:hover {
+        background: #eeeeee;
+    }
     @media screen and (max-width: 575px), (max-device-width: 575px), (pointer: coarse) {
         .wide_flex {
             flex-direction: column;
@@ -67,7 +75,6 @@ function resizeImages() {
         }
     }
 }
-resizeImages();
 
 
 
@@ -90,7 +97,6 @@ function minFontSize(minPxSize = 10, minEmSize = 0.8) {
         }
     }
 }
-minFontSize();
 
 function maxFontSize(maxPxSize = 16, maxEmSize = 1.1) {
     let elements = document.querySelectorAll('.bbc_size');
@@ -114,7 +120,6 @@ function maxFontSize(maxPxSize = 16, maxEmSize = 1.1) {
         }
     }
 }
-maxFontSize();
 
 
 function hideNewbie() {
@@ -126,7 +131,6 @@ function hideNewbie() {
         }
     }
 }
-hideNewbie();
 
 function hideFatalAndClearFix() {
     let element = document.getElementById('fatal_error');
@@ -136,7 +140,6 @@ function hideFatalAndClearFix() {
         elem.style.display = "none";
     }
 }
-hideFatalAndClearFix();
 
 function dimKeyInfo() {
     let keyInfos = document.querySelectorAll('.keyinfo');
@@ -144,7 +147,6 @@ function dimKeyInfo() {
         //keyInfo.style.opacity = dimPercentage;
     }
 }
-dimKeyInfo()
 
 function formatInnerPostDiv() {
     let inners = document.querySelectorAll('.inner');
@@ -155,7 +157,6 @@ function formatInnerPostDiv() {
         inner.style.borderRadius = "5px";
     }
 }
-formatInnerPostDiv();
 
 function dimSignature() {
     let signatures = document.querySelectorAll('.signature');
@@ -164,7 +165,6 @@ function dimSignature() {
         signature.style.borderTop = "none";
     }
 }
-dimSignature();
 
 function blockquoteFormatting() {
     let blocks = document.getElementsByTagName('blockquote');
@@ -179,7 +179,7 @@ function blockquoteFormatting() {
             img.style.maxWidth = 'none';
             img.style.width = 'auto';
             img.dataset.thumbnail = 'true';
-            console.log(img)
+            //console.log((img)
         }
     }
 
@@ -188,8 +188,6 @@ function blockquoteFormatting() {
         header.style.marginTop = "5px";
     }
 }
-blockquoteFormatting();
-
 
 function removeThirdLineBreaks(element) {
     let brsToRemove = [];
@@ -239,7 +237,6 @@ function dimLogged() {
         }
     }
 }
-dimLogged();
 
 function hideMessageIcons() {
     classesToRemove = ['messageicon', 'glyphicon-pencil'];
@@ -250,29 +247,42 @@ function hideMessageIcons() {
         }
     }
 }
-hideMessageIcons();
 
 function replyListToHamburger() {
     let navPillsList = document.querySelectorAll('.nav-pills');
     for (const [index, navPillsElement] of navPillsList.entries()) {
         navPillsElement.style.display = "flex";
-        navPillsElement.style.justifyContent = "flex-end";
+        navPillsElement.style.flexDirection = "column";
+        navPillsElement.style.flexWrap = "wrap";
 
         addedClassName = `navPillsHide${index}`;
         let navPillsChildren = navPillsElement.children;
+        let count = 2;
+        let replyFlex = null;
         for (elem of navPillsChildren) {
-            if (!(elem.className.includes('active') || elem.className.includes('hideShowNavPillsList'))) {
+            if (elem.className.includes('active')) {
+                replyFlex = elem;
+                elem.style.display = 'flex';
+                elem.style.order = 1
+            } else {
                 elem.style.visibility = 'collapse';
                 elem.classList.add(addedClassName);
-                elem.dataset.index = index;
+                elem.style.order = count;
+                count += 1;
             }
         }
 
-        let expand_button_list_item = document.createElement("li");
-        expand_button_list_item.className = "hideShowNavPillsList"
-        expand_button_list_item.onclick = function() {
+        let expandButtonDiv = document.createElement("div");
+        expandButtonDiv.className = "hideShowNavPillsList";
+        expandButtonDiv.style.display = "Flex";
+        expandButtonDiv.style.justifyContent = "center";
+        expandButtonDiv.style.alignItems = "center";
+        expandButtonDiv.style.width = '50px';
+        expandButtonDiv.style.cursor = 'pointer';
+
+        expandButtonDiv.onclick = function() {
             let index = this.dataset.index;
-            let parent = this.parentElement;
+            let parent = this.parentElement.parentElement;
             for (elem of parent.children) {
                 if (!(elem.className.includes('active'))) {
                     if (elem.className.includes('hideShowNavPillsList')) {
@@ -291,13 +301,13 @@ function replyListToHamburger() {
 
         };
 
-        let anchor = document.createElement("a");
-        anchor.textContent = "More";
-        expand_button_list_item.appendChild(anchor);
-        navPillsElement.appendChild(expand_button_list_item);
+        let textSpan = document.createElement("div");
+        textSpan.textContent = "More";
+
+        expandButtonDiv.appendChild(textSpan)
+        replyFlex.appendChild(expandButtonDiv);
     }
 }
-replyListToHamburger();
 
 function warningsFullVisibility() {
     let messageContainers = document.querySelectorAll('.message_container');
@@ -635,7 +645,178 @@ function forumIteration() {
         let formattedMessage = messageIteration(message);
         forumPosts.appendChild(formattedMessage);
     }
-
 }
-forumIteration();
+
+function removePreviousAndNextPageAndBackButtons() {
+    pagers = document.getElementsByClassName("pager");
+    for (pager of pagers) {
+        //console.log(pager);
+        pager.style.display = "none";
+    }
+    centerTextDivs = document.getElementsByClassName("centertext");
+    for (centerTextDiv of centerTextDivs) {
+        //console.log(centerTextDiv);
+        if (centerTextDiv.children.length == 1) {
+            if (centerTextDiv.firstChild.nodeName == "A") {
+                centerTextDiv.style.display = "none";
+            }
+        }
+    }
+}
+
+function formatFirstRow() {
+    let topRow = returnSubClassSingleton(body, "row");
+
+    let searchForm = document.getElementById('search_form');
+
+    let layoutText = `
+    <div class="col-md-9">
+        <form class="navbar-form navbar-left" role="search" id="search_form" action="https://www.golfclubatlas.com/forum/index.php?action=search2" method="post" accept-charset="ISO-8859-1">
+
+                <div class="form-group">
+                  <input type="text" class="form-control" placeholder="Search" name="search" />
+                </div>
+                <input type="hidden" name="advanced" value="0" />
+                <button type="submit" class="btn btn-default btn-sm">
+                    <span class="glyphicon glyphicon-search">
+                    </span>
+                    Search
+                </button>
+                <a href="https://www.golfclubatlas.com/forum/index.php?action=search;advanced=1">
+                    <span class="glyphicon glyphicon-cog">
+                    </span>
+                </a>
+                <input type="hidden" name="topic" value="72924" />
+
+
+                <br class="clear" />
+                <br class="clear" />
+                <span class="glyphicon glyphicon-time"></span> May 31, 2024, 07:45:57 PM
+                |
+                <span class="glyphicon glyphicon-calendar"></span> <a href="https://www.golfclubatlas.com/forum/index.php?action=calendar">Calendar</a>
+         </form>
+    </div>
+    `
+
+    //pull out elements and reput them in to remove pesky text
+    elementList = [];
+    for (element of searchForm) {
+        elementList.push(element);
+    }
+    searchForm.innerHTML = "";
+    for (element of elementList) {
+        searchForm.appendChild(element);
+        searchForm.dataset.searchFormElement = "true";
+    }
+    //remove text
+
+
+
+    // news area
+    let newsDiv = returnSubClassSingleton(topRow, "col-md-3");
+    // double check here
+    for (child of newsDiv.children) {
+        if (child.innerText.includes("News")) {
+            newsDiv.style.display = "none";
+            return
+        }
+
+    }
+}
+
+
+
+function removeContainerHr() {
+    for (element of body.children) {
+        if (element.className == "container") {
+            for (child of element.children) {
+                //console.log(element.tagName);
+                if (child.tagName == "HR") {
+                    child.remove();
+                    return;
+                }
+            }
+        }
+    }
+}
+
+function cleanerPageBar() {
+    let keyInfo = returnSubClassSingleton(body, 'keyinfo');
+    let h5 = returnSubTagSingleton(keyInfo, 'h5');
+    let titleAnchor = returnSubTagSingleton(h5, 'a');
+
+
+    pageBars = document.getElementsByClassName("pagesection");
+    for (pageBar of pageBars) {
+        console.log(pageBar)
+        addBorder(pageBar, 'orange');
+        pageBar.style.width = '100%';
+        pageBar.style.margin = "15px 0";
+
+        pageBar.style.display = 'flex';
+        pageBar.style.justifyContent = 'space-between';
+        pageBar.style.alignItems = 'center';
+        //pageBar.style.flexWrap = 'wrap';
+
+
+        let newH5 = h5.cloneNode()
+        let newTitleAnchor = titleAnchor.cloneNode(true);
+        newH5.appendChild(newTitleAnchor);
+        newH5.style.order = 1;
+        newH5.style.fontWeight = 'bold';
+        console.log('newH5');
+        console.log(newH5);
+        pageBar.appendChild(newH5);
+
+
+        for (element of pageBar.children) {
+            addBorder(element, 'DarkOrange');
+            if (element.className.includes("floatright")) {
+                //hamburger
+                element.style.order = 4;
+                //element.style.flexShrink = 4;
+                element.style.flexBasis = '100px';
+
+
+            } else if (element.className.includes("floatleft")) {
+                //pages seciton
+                element.style.order = 2;
+                element.style.whiteSpace = "nowrap";
+                element.style.padding = "0 20px";
+
+
+            }
+        }
+    }
+}
+
+function fullPageIteration() {
+    resizeImages();
+    minFontSize();
+    maxFontSize();
+    hideFatalAndClearFix();
+    hideNewbie();
+    hideMessageIcons();
+
+    dimKeyInfo()
+    dimLogged();
+    dimSignature();
+
+    formatInnerPostDiv();
+    blockquoteFormatting();
+    replyListToHamburger();
+
+
+
+    formatFirstRow();
+    removePreviousAndNextPageAndBackButtons();
+    removeContainerHr();
+    cleanerPageBar();
+
+    forumIteration();
+}
+fullPageIteration()
+
+
+
 // end of line
