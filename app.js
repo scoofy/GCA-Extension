@@ -39,7 +39,7 @@ function timeDifference(current, previous) {
 }
 
 
-var body = returnSubTagSingleton(document, 'body');
+var body = returnSubTagSingletonElseStyleElement(document, 'body');
 body.style.display = "flex";
 body.style.flexDirection = "column";
 body.style.justifyContent = "space-between";
@@ -68,20 +68,52 @@ var myStyle = `
     .hideShowNavPillsList:hover {
         background: #eeeeee;
     }
+    .extensionNewInfoButton {
+        color: white;
+        padding: 8px 16px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 0;
+        background-color: #5bc0de;
+        border: solid 1px #46b8da;
+        margin-bottom: 0;
+        text-align: center;
+        cursor: pointer;
+        white-space: nowrap;
+        text-decoration: none;
+        font-family: verdana, sans-serif;
+    }
+    .extensionNewInfoButton:hover {
+        color: white;
+        background-color: #31b0d5;
+        border-color: #269abc;
+        text-decoration: none;
+    }
     @media screen and (max-width: 575px), (max-device-width: 575px), (pointer: coarse) {
         .wide_flex {
             flex-direction: column;
             justify-content: center;
         }
+        .avatar {
+            visibility: collapse !important;
+            height: 0px !important;
+        }
         .signature {
-            visibility: collapse;
+            visibility: collapse !important;
+            height: 0px !important;
+            margin: 0px 0px !important;
         }
         .new_right_col {
-            min-width: 100%;
-            width: 100%;
-            flex-shrink: 1;
-            flex-grow: 1;
-            padding: 0;
+            margin: 0px !important;
+            padding: 0px !important;
+            min-width: 100% !important;
+            width: 100% !important;
+            flex-shrink: 1 !important;
+            flex-grow: 1 !important;
+        }
+        .new_right_col div {
+            margin: 0px !important;
+            padding: 0px !important;
         }
     }
     `;
@@ -233,7 +265,7 @@ function blockquoteFormatting() {
     let quoteHeaders = document.getElementsByClassName('quoteheader');
     for (header of quoteHeaders) {
         header.style.marginTop = "5px";
-        let headerTitleAnchor = returnSubTagSingleton(header, "a");
+        let headerTitleAnchor = returnSubTagSingletonElseStyleElement(header, "a");
         if (headerTitleAnchor.textContent.includes(' on ')) {
             let headerTitleSplit = headerTitleAnchor.textContent.split(' on ');
             let quoteFromName = headerTitleSplit[0];
@@ -328,40 +360,42 @@ function replyListToHamburger() {
             }
         }
 
-        let expandButtonDiv = document.createElement("div");
-        expandButtonDiv.className = "hideShowNavPillsList";
-        expandButtonDiv.style.display = "Flex";
-        expandButtonDiv.style.justifyContent = "center";
-        expandButtonDiv.style.alignItems = "center";
-        expandButtonDiv.style.width = '50px';
-        expandButtonDiv.style.cursor = 'pointer';
+        if (replyFlex) {
+            let expandButtonDiv = document.createElement("div");
+            expandButtonDiv.className = "hideShowNavPillsList";
+            expandButtonDiv.style.display = "Flex";
+            expandButtonDiv.style.justifyContent = "center";
+            expandButtonDiv.style.alignItems = "center";
+            expandButtonDiv.style.width = '50px';
+            expandButtonDiv.style.cursor = 'pointer';
 
-        expandButtonDiv.onclick = function() {
-            let index = this.dataset.index;
-            let parent = this.parentElement.parentElement;
-            for (elem of parent.children) {
-                if (!(elem.className.includes('active'))) {
-                    if (elem.className.includes('hideShowNavPillsList')) {
-                        if (elem.firstChild.textContent === "More") {
-                            elem.firstChild.textContent = "Less";
+            expandButtonDiv.onclick = function() {
+                let index = this.dataset.index;
+                let parent = this.parentElement.parentElement;
+                for (elem of parent.children) {
+                    if (!(elem.className.includes('active'))) {
+                        if (elem.className.includes('hideShowNavPillsList')) {
+                            if (elem.firstChild.textContent === "More") {
+                                elem.firstChild.textContent = "Less";
+                            } else {
+                                elem.firstChild.textContent = "More";
+                            }
+                        } else if (elem.style.visibility === 'collapse') {
+                            elem.style.visibility = 'visible';
                         } else {
-                            elem.firstChild.textContent = "More";
+                            elem.style.visibility = 'collapse';
                         }
-                    } else if (elem.style.visibility === 'collapse') {
-                        elem.style.visibility = 'visible';
-                    } else {
-                        elem.style.visibility = 'collapse';
                     }
                 }
-            }
 
-        };
+            };
 
-        let textSpan = document.createElement("div");
-        textSpan.textContent = "More";
+            let textSpan = document.createElement("div");
+            textSpan.textContent = "More";
 
-        expandButtonDiv.appendChild(textSpan)
-        replyFlex.appendChild(expandButtonDiv);
+            expandButtonDiv.appendChild(textSpan);
+            replyFlex.appendChild(expandButtonDiv);
+        }
     }
 }
 
@@ -392,8 +426,8 @@ function warningsFullVisibility() {
 //warningsFullVisibility()
 
 
-function returnSubClassSingleton(parentElement, theClassName, returnNull = false) {
-    //console.log("returnSubClassSingleton()");
+function returnSubClassSingletonElseStyleElement(parentElement, theClassName, returnNull = false) {
+    //console.log("returnSubClassSingletonElseStyleElement()");
     let theElementList = parentElement.getElementsByClassName(theClassName);
     let theElement = theElementList.item(0);
     //console.log(theElement);
@@ -408,8 +442,8 @@ function returnSubClassSingleton(parentElement, theClassName, returnNull = false
     return theElement;
 }
 
-function returnSubTagSingleton(parentElement, theTagName, returnNull = false) {
-    //console.log("returnSubClassSingleton()");
+function returnSubTagSingletonElseStyleElement(parentElement, theTagName, returnNull = false) {
+    //console.log("returnSubClassSingletonElseStyleElement()");
     let theElementList = parentElement.getElementsByTagName(theTagName);
     let theElement = theElementList.item(0);
     //console.log(theElement);
@@ -438,7 +472,7 @@ function addBorder(element, color, px = 1) {
 function formatExistingLeftColumn(leftCol, postTimeAgo) {
     let formatedLeftCol = baseColFlex();
 
-    let h4 = returnSubTagSingleton(leftCol, 'h4');
+    let h4 = returnSubTagSingletonElseStyleElement(leftCol, 'h4');
     h4.style.marginBottom = "0";
     h4.style.marginLeft = "0";
     h4.style.paddingBottom = "0";
@@ -601,8 +635,8 @@ function postTimeStrToDateObj(postTimeStr) {
 }
 
 function returnPostDateObj(messageContainerElement) {
-    let keyInfoDiv = returnSubClassSingleton(messageContainerElement, "keyinfo");
-    let smallTextDiv = returnSubClassSingleton(keyInfoDiv, "smalltext");
+    let keyInfoDiv = returnSubClassSingletonElseStyleElement(messageContainerElement, "keyinfo");
+    let smallTextDiv = returnSubClassSingletonElseStyleElement(keyInfoDiv, "smalltext");
     //console.log(smallTextDiv.textContent);
     let afterFirstColon = smallTextDiv.textContent.substring(smallTextDiv.textContent.indexOf(':') + 1);
     //console.log(afterFirstColon);
@@ -670,35 +704,39 @@ function messageIteration(messageContainerElement) {
     footer_button_col.className = "footer_info_col";
 
     // get newPostWarning now, becaues the stuff it's located in will move out of the container
-    let newPostWarning = returnSubClassSingleton(messageContainerElement, 'label-warning', true);
+    let newPostWarning = returnSubClassSingletonElseStyleElement(messageContainerElement, 'label-warning', true);
 
-    let existing_left_col = returnSubClassSingleton(messageContainerElement, "col-md-3");
+    let existing_left_col = returnSubClassSingletonElseStyleElement(messageContainerElement, "col-md-3");
     let formattedLeftCol = formatExistingLeftColumn(existing_left_col, postTimeAgo);
     addBorder(formattedLeftCol, 'DarkOliveGreen');
 
-    let existing_right_col = returnSubClassSingleton(messageContainerElement, "col-md-9");
+    let existing_right_col = returnSubClassSingletonElseStyleElement(messageContainerElement, "col-md-9");
     addBorder(existing_right_col, 'MistyRose');
     existing_right_col.style.width = "100%";
     existing_right_col.style.textAlign = 'justify';
     existing_right_col.style.textJustify = 'inter-word';
 
-    let post = returnSubClassSingleton(existing_right_col, "postarea");
+    let post = returnSubClassSingletonElseStyleElement(existing_right_col, "postarea");
     removeThirdLineBreaks(post);
     //console.log(post.textContent);
 
 
-    let subject_info = returnSubClassSingleton(existing_right_col, "flow_hidden");
+    let subject_info = returnSubClassSingletonElseStyleElement(existing_right_col, "flow_hidden");
     addBorder(subject_info, "Indigo");
-    let keyinfo = returnSubClassSingleton(existing_right_col, "keyinfo");
+    let keyinfo = returnSubClassSingletonElseStyleElement(existing_right_col, "keyinfo");
     keyinfo.style.width = "100%";
     addBorder(keyinfo, "Tomato");
 
-    let moderation = returnSubClassSingleton(existing_right_col, "moderatorbar");
+    let moderation = returnSubClassSingletonElseStyleElement(existing_right_col, "moderatorbar");
     addBorder(moderation, "Salmon");
-    let signature = returnSubClassSingleton(existing_right_col, "signature");
+    let signature = returnSubClassSingletonElseStyleElement(existing_right_col, "signature");
     signature.style.width = '100%';
     addBorder(signature, "Fuchsia");
-    let buttons = returnSubClassSingleton(subject_info, "quickbuttons2");
+    let buttons = returnSubClassSingletonElseStyleElement(subject_info, "quickbuttons2");
+    if (buttons.tagName == "STYLE") {
+        buttons = document.createElement("div");
+        //buttons.className = "quickbuttons2";
+    }
     buttons.style.display = "flex";
     buttons.style.gap = "10px";
     buttons.style.justifyContent = 'center';
@@ -707,10 +745,16 @@ function messageIteration(messageContainerElement) {
     addBorder(buttons, "BurlyWood");
 
 
-    let firstButton = returnSubTagSingleton(buttons, "a");
+    let firstButton = returnSubTagSingletonElseStyleElement(buttons, "a");
     let newButton = firstButton.cloneNode();
+    if (firstButton.tagName == "A") {
+        newButton.removeAttribute("href");
+    } else {
+        newButton = document.createElement("a");
+        newButton.className = "extensionNewInfoButton";
+    }
+
     //console.log(newButton);
-    newButton.removeAttribute("href");
     newButton.textContent = "Info";
     newButton.onclick = function() {
         if (footer_info_col.style.visibility == 'visible') {
@@ -796,7 +840,7 @@ function removePreviousAndNextPageAndBackButtons() {
 }
 
 function formatFirstRow() {
-    let topRow = returnSubClassSingleton(body, "row");
+    let topRow = returnSubClassSingletonElseStyleElement(body, "row");
 
     let searchForm = document.getElementById('search_form');
 
@@ -844,7 +888,7 @@ function formatFirstRow() {
 
 
     // news area
-    let newsDiv = returnSubClassSingleton(topRow, "col-md-3");
+    let newsDiv = returnSubClassSingletonElseStyleElement(topRow, "col-md-3");
     // double check here
     for (child of newsDiv.children) {
         if (child.innerText.includes("News")) {
@@ -872,9 +916,9 @@ function removeContainerHr() {
 }
 
 function cleanerPageBar() {
-    let keyInfo = returnSubClassSingleton(body, 'keyinfo');
-    let h5 = returnSubTagSingleton(keyInfo, 'h5');
-    let titleAnchor = returnSubTagSingleton(h5, 'a');
+    let keyInfo = returnSubClassSingletonElseStyleElement(body, 'keyinfo');
+    let h5 = returnSubTagSingletonElseStyleElement(keyInfo, 'h5');
+    let titleAnchor = returnSubTagSingletonElseStyleElement(h5, 'a');
 
 
     pageBars = document.getElementsByClassName("pagesection");
@@ -890,8 +934,10 @@ function cleanerPageBar() {
         //pageBar.style.flexWrap = 'wrap';
 
 
-        let newH5 = h5.cloneNode()
+        let newH5 = h5.cloneNode();
         let newTitleAnchor = titleAnchor.cloneNode(true);
+        newTitleAnchor.href = newTitleAnchor.href.split('.msg', 1) + ".0.html"
+        console.log(newTitleAnchor.href)
         newH5.appendChild(newTitleAnchor);
         newH5.style.order = 1;
         newH5.style.fontWeight = 'bold';
@@ -946,6 +992,7 @@ function fullPageIteration() {
     cleanerPageBar();
 
     forumIteration();
+    console.log('FULL PAGE ITERATION!!!')
 }
 fullPageIteration()
 
