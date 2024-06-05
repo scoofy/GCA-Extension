@@ -96,6 +96,7 @@ var myStyle = `
         }
         .gca-collapse {
             visibility: visible !important;
+            width: fit-content !important;
         }
 
     }
@@ -103,6 +104,7 @@ var myStyle = `
     @media (max-width: 768px) {
         .gca-collapse {
             visibility: collapse;
+            width: 0px;
         }
         .navbar-nav {
             margin: 0px !important;
@@ -1052,12 +1054,15 @@ function cleanerNavBar() {
             //console.log(ulc.style.visibility);
             //console.log(ulc.style);
             if (!ulc.style.visibility) {
+                ulc.style.width = 'fit-content';
                 ulc.style.visibility = 'visible';
             } else {
                 if (ulc.style.visibility == 'collapse') {
+                    ulc.style.width = 'fit-content';
                     ulc.style.visibility = 'visible';
 
                 } else if (ulc.style.visibility == 'visible') {
+                    ulc.style.width = '0px';
                     ulc.style.visibility = 'collapse';
                 }
             }
