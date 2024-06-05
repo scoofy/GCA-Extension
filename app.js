@@ -89,6 +89,26 @@ var myStyle = `
         border-color: #269abc;
         text-decoration: none;
     }
+
+    @media (min-width: 768px) {
+        .gca-button {
+            visibility: collapse;
+        }
+        .gca-collapse {
+            visibility: visible !important;
+        }
+
+    }
+
+    @media (max-width: 768px) {
+        .gca-collapse {
+            visibility: collapse;
+        }
+        .navbar-nav {
+            margin: 0px !important;
+        }
+    }
+
     @media screen and (max-width: 575px), (max-device-width: 575px), (pointer: coarse) {
         .wide_flex {
             flex-direction: column;
@@ -115,8 +135,12 @@ var myStyle = `
             margin: 0px !important;
             padding: 0px !important;
         }
+        .navbar-brand {
+            padding: 12px 15px;
+        }
     }
     `;
+
 addedStyleSheet.innerText = myStyle;
 document.head.appendChild(addedStyleSheet);
 
@@ -479,24 +503,26 @@ function formatExistingLeftColumn(leftCol, postTimeAgo) {
     h4.style.paddingLeft = "0";
 
     let nameSpan = leftCol.querySelector('[itemprop="name"]');
-    nameSpan.textContent = nameSpan.textContent.replace('_', ' ');
-    nameSpan.style.color = '#c06002';
-    let avatar = leftCol.querySelector('[itemprop="image"]');
+    if (nameSpan) {
+        nameSpan.textContent = nameSpan.textContent.replace('_', ' ');
+        nameSpan.style.color = '#c06002';
+        let avatar = leftCol.querySelector('[itemprop="image"]');
 
-    formatedLeftCol.appendChild(h4);
-    let postTimeDiv = document.createElement('div');
-    postTimeDiv.textContent = postTimeAgo;
-    postTimeDiv.style.fontSize = "70%";
-    postTimeDiv.style.opacity = notablePercentage;
-    postTimeDiv.style.margin = "0 0 5px 1px";
-    formatedLeftCol.appendChild(postTimeDiv);
+        formatedLeftCol.appendChild(h4);
+        let postTimeDiv = document.createElement('div');
+        postTimeDiv.textContent = postTimeAgo;
+        postTimeDiv.style.fontSize = "70%";
+        postTimeDiv.style.opacity = notablePercentage;
+        postTimeDiv.style.margin = "0 0 5px 1px";
+        formatedLeftCol.appendChild(postTimeDiv);
 
 
-    if (avatar) {
-        formatedLeftCol.appendChild(avatar);
+        if (avatar) {
+            formatedLeftCol.appendChild(avatar);
+        }
+
+        return formatedLeftCol;
     }
-
-    return formatedLeftCol;
 }
 
 function calculateImgAspectRatioFit(img) {
@@ -918,7 +944,7 @@ function removeContainerHr() {
 function cleanerPageBar() {
     let keyInfo = returnSubClassSingletonElseStyleElement(body, 'keyinfo');
     let h5 = returnSubTagSingletonElseStyleElement(keyInfo, 'h5');
-    let titleAnchor = returnSubTagSingletonElseStyleElement(h5, 'a');
+    let titleAnchor = returnSubTagSingletonElseStyleElement(h5, 'a', true);
 
 
     pageBars = document.getElementsByClassName("pagesection");
@@ -935,37 +961,156 @@ function cleanerPageBar() {
 
 
         let newH5 = h5.cloneNode();
-        let newTitleAnchor = titleAnchor.cloneNode(true);
-        newTitleAnchor.href = newTitleAnchor.href.split('.msg', 1) + ".0.html"
-        console.log(newTitleAnchor.href)
-        newH5.appendChild(newTitleAnchor);
-        newH5.style.order = 1;
-        newH5.style.fontWeight = 'bold';
-        //console.log('newH5');
-        //console.log(newH5);
-        pageBar.appendChild(newH5);
+        if (titleAnchor) {
+            let newTitleAnchor = titleAnchor.cloneNode(true);
+            //console.log(newTitleAnchor);
+            newTitleAnchor.href = newTitleAnchor.href.split('.msg', 1) + ".0.html"
+
+            //console.log(newTitleAnchor.href)
+            newH5.appendChild(newTitleAnchor);
+            newH5.style.order = 1;
+            newH5.style.fontWeight = 'bold';
+            //console.log('newH5');
+            //console.log(newH5);
+            pageBar.appendChild(newH5);
 
 
-        for (element of pageBar.children) {
-            addBorder(element, 'DarkOrange');
-            if (element.className.includes("floatright")) {
-                //hamburger
-                element.style.order = 4;
-                //element.style.flexShrink = 4;
-                element.style.flexBasis = '100px';
+            for (element of pageBar.children) {
+                addBorder(element, 'DarkOrange');
+                if (element.className.includes("floatright")) {
+                    //hamburger
+                    element.style.order = 4;
+                    //element.style.flexShrink = 4;
+                    element.style.flexBasis = '100px';
 
 
-            } else if (element.className.includes("floatleft")) {
-                //pages seciton
-                element.style.order = 2;
-                element.style.whiteSpace = "nowrap";
-                element.style.padding = "0 20px";
+                } else if (element.className.includes("floatleft")) {
+                    //pages seciton
+                    element.style.order = 2;
+                    element.style.whiteSpace = "nowrap";
+                    element.style.padding = "0 20px";
 
 
+                }
             }
         }
     }
 }
+
+function cleanerNavBar() {
+    navbar = returnSubClassSingletonElseStyleElement(body, 'navbar-fixed-top');
+    navContainer = returnSubClassSingletonElseStyleElement(navbar, 'container');
+    navContainerClone = navContainer.cloneNode()
+
+    navContainerClone.style.width = "100%";
+    navContainerClone.style.display = "flex";
+    navContainerClone.style.justifyContent = "flex-end";
+    navContainerClone.style.alignItems = "center";
+    navContainerClone.style.flexWrap = "wrap";
+
+
+    brandSpacer = document.createElement("div");
+    brandSpacer.style.display = 'flex';
+    brandSpacer.style.justifyContent = 'space-between';
+    brandSpacer.style.alignItems = 'center';
+    brandSpacer.style.flexGrow = 2;
+
+    navbarBrand = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-brand');
+    navbarBrand.style.padding = '0px';
+    navbarBrand.style.display = 'flex';
+    navbarBrand.style.alignItems = 'center';
+
+    addBorder(navbarBrand, "PowderBlue");
+    brandSpacer.appendChild(navbarBrand);
+
+    brandImg = returnSubTagSingletonElseStyleElement(navbarBrand, 'img');
+    // hard coded actual image width:
+    // https://golfclubatlas.com/images/Golf-Club-Atlas-Logo.jpg
+    brandImg.style.width = '250px';
+    brandImg.style.height = 'auto';
+    brandImg.style.padding = '0px';
+
+    let dummy_ul = document.createElement("ul");
+    dummy_ul.classList.add('nav');
+    dummy_ul.classList.add('navbar-nav');
+    dummy_ul.classList.add('gca-button');
+    let dummy_li = document.createElement("li");
+    let dummy_a = document.createElement("a");
+    let dummy_span = document.createElement("span");
+    addBorder(dummy_ul, 'red');
+
+
+    dummy_span.textContent = "More";
+
+
+    dummy_ul.onclick = function() {
+        //console.log('HERE WE GO!');
+        let parentContainer = this.parentElement.parentElement;
+        //console.log(parentContainer);
+        let unorderedListClones = parentContainer.getElementsByClassName('gca-collapse');
+        for (ulc of unorderedListClones) {
+            //console.log(ulc.style.visibility);
+            //console.log(ulc.style);
+            if (!ulc.style.visibility) {
+                ulc.style.visibility = 'visible';
+            } else {
+                if (ulc.style.visibility == 'collapse') {
+                    ulc.style.visibility = 'visible';
+
+                } else if (ulc.style.visibility == 'visible') {
+                    ulc.style.visibility = 'collapse';
+                }
+            }
+        }
+        let thisSpan = returnSubTagSingletonElseStyleElement(this, 'span');
+        //console.log(thisSpan.textContent);
+        if (thisSpan.textContent.includes("More")) {
+            thisSpan.textContent = "✕";
+        } else {
+            thisSpan.textContent = "More";
+        }
+    };
+
+
+    dummy_a.appendChild(dummy_span);
+    dummy_li.appendChild(dummy_a);
+    dummy_ul.appendChild(dummy_li);
+    brandSpacer.appendChild(dummy_ul);
+
+
+    navContainerClone.appendChild(brandSpacer);
+
+
+
+    navbarCollapse = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-collapse');
+    collapseClassList = navbarCollapse.classList;
+    //console.log(collapseClassList);
+    for (unorderedList of navbarCollapse.children) {
+        let listItemList = [];
+        for (listItem of unorderedList.children) {
+            listItem.style.whiteSpace = 'nowrap';
+            listItem.style.width = 'fit-content !important';
+
+            //listItem.className = '';
+            //for (thisClassName of collapseClassList) {
+            //    //listItem.classList.add(thisClassName);
+            //}
+            addBorder(listItem, "PowderBlue");
+            listItemList.push(listItem);
+        }
+        for (listItem of listItemList) {
+            //let unorderedListClone = document.createElement("ul");
+            let unorderedListClone = unorderedList.cloneNode();
+            unorderedListClone.classList.add('gca-collapse');
+            addBorder(unorderedListClone, "PowderBlue");
+            unorderedListClone.appendChild(listItem);
+            navContainerClone.appendChild(unorderedListClone);
+        }
+    }
+    navbar.appendChild(navContainerClone);
+    navContainer.remove();
+}
+
 
 function fullPageIteration() {
     resizeImages();
@@ -992,7 +1137,8 @@ function fullPageIteration() {
     cleanerPageBar();
 
     forumIteration();
-    console.log('FULL PAGE ITERATION!!!')
+    cleanerNavBar()
+    //console.log('FULL PAGE ITERATION!!!')
 }
 fullPageIteration()
 
