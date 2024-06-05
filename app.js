@@ -1028,7 +1028,7 @@ function cleanerNavBar() {
     // https://golfclubatlas.com/images/Golf-Club-Atlas-Logo.jpg
     brandImg.style.width = '250px';
     brandImg.style.height = 'auto';
-    brandImg.style.padding = '0px';
+    brandImg.style.padding = '0px 6px';
 
     let dummy_ul = document.createElement("ul");
     dummy_ul.classList.add('nav');
