@@ -1,13 +1,45 @@
-var testing = false;
-var dimPercentage = "10%";
-var notablePercentage = "60%"
+const testing = false;
+const dimPercentage = "10%";
+const notablePercentage = "60%"
 
+const bbCodeClosingTags = [
+    '[/li]',
+    '[/list]',
+    '[/quote]',
+    '[/code]',
+    '[/td]',
+    '[/tr]',
+    '[/table]',
+    '[/tt]',
+    '[/sub]',
+    '[/sup]',
+    '[/move]',
+    '[/shadow]',
+    '[/glow]',
+    '[/ftp]',
+    '[/email]',
+    '[/url]',
+    '[/img]',
+    '[/color]',
+    '[/size]',
+    '[/font]',
+    '[/right]',
+    '[/center]',
+    '[/left]',
+    '[/pre]',
+    '[/s]',
+    '[/u]',
+    '[/i]',
+    '[/b]'
+];
+// USE ITERATION OVER REGEX, IT'S FASTER
+//const bbCodeClosingTagRegEx = /\[\/[a-zA-Z]+\]/g
 
-var msPerMinute = 60 * 1000;
-var msPerHour = msPerMinute * 60;
-var msPerDay = msPerHour * 24;
-var msPerMonth = msPerDay * 30;
-var msPerYear = msPerDay * 365;
+const msPerMinute = 60 * 1000;
+const msPerHour = msPerMinute * 60;
+const msPerDay = msPerHour * 24;
+const msPerMonth = msPerDay * 30;
+const msPerYear = msPerDay * 365;
 
 function timeDifference(current, previous) {
     var elapsed = current - previous;
@@ -15,7 +47,7 @@ function timeDifference(current, previous) {
     let unit = '';
     if (elapsed < msPerMinute) {
         time = Math.round(elapsed / 1000);
-        units = 'second';
+        unit = 'second';
     } else if (elapsed < msPerHour) {
         time = Math.round(elapsed / msPerMinute);
         unit = 'minute';
@@ -301,6 +333,24 @@ function blockquoteFormatting() {
             headerTitleAnchor.textContent = `${quoteFromName} about ${timeAgo}`;
         }
     }
+}
+
+function recursiveBBCodeTagRemoval(recursionElement) {
+    for (childElement of recursionElement.children) {
+        recursiveBBCodeTagRemoval(childElement);
+    }
+    for (node of recursionElement.childNodes) {
+        if (node.nodeName == "#text") {
+            for (bbCodeSnippit of bbCodeClosingTags) {
+                node.nodeValue = node.nodeValue.replace(bbCodeSnippit, ' ');
+            }
+        }
+    }
+}
+
+function removeOrphanBBCodeTags(postElement) {
+    let inner = returnSubClassSingletonElseStyleElement(postElement, 'inner');
+    recursiveBBCodeTagRemoval(inner);
 }
 
 function removeThirdLineBreaks(element) {
@@ -745,6 +795,7 @@ function messageIteration(messageContainerElement) {
     existing_right_col.style.textJustify = 'inter-word';
 
     let post = returnSubClassSingletonElseStyleElement(existing_right_col, "postarea");
+    removeOrphanBBCodeTags(post);
     removeThirdLineBreaks(post);
     //console.log(post.textContent);
 
