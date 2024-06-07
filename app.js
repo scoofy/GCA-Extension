@@ -32,6 +32,24 @@ const bbCodeClosingTags = [
     '[/i]',
     '[/b]'
 ];
+
+const skippableInLineElements = [
+    'A',
+    'ABBR',
+    'B',
+    'BR',
+    'CITE',
+    'EM',
+    'I',
+    'MARK',
+    'S',
+    'SMALL',
+    'SPAN',
+    'STRONG',
+    'SUB',
+    'SUP',
+];
+
 // USE ITERATION OVER REGEX, IT'S FASTER
 //const bbCodeClosingTagRegEx = /\[\/[a-zA-Z]+\]/g
 
@@ -356,7 +374,8 @@ function removeOrphanBBCodeTags(postElement) {
 function removeThirdLineBreaks(element) {
     let brsToRemove = [];
     let brs = element.getElementsByTagName('br');
-    let acceptableParents = ["A", "BR", "IMG", "#text"];
+    let skippableNonInlineElements = ["IMG", "#text"];
+    let acceptableParents = skippableNonInlineElements.concat(skippableInLineElements);
     for (br of brs) {
         if (br.previousSibling) {
             //console.log('    ', br.previousSibling.nodeName);
