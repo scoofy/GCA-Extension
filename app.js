@@ -72,6 +72,7 @@ function timeDifference(current, previous) {
 
 
 var body = returnSubTagSingletonElseStyleElement(document, 'body');
+body.style.padding = "0px";
 body.style.display = "flex";
 body.style.flexDirection = "column";
 body.style.justifyContent = "space-between";
@@ -94,6 +95,10 @@ function setAvatarSizesToDataSets(bodyTag) {
 
 var addedStyleSheet = document.createElement("style");
 var myStyle = `
+    .navbar-fixed-top {
+        position: unset !important;
+        margin-bottom: 10px;
+    }
     .container {
         min-height: 0px !important;
     }
