@@ -542,6 +542,11 @@ function pageLinksToButtons() {
     pageLinks = document.getElementsByClassName('pagelinks');
     for (pageLink of pageLinks) {
         pageLink.style.fontSize = '14px';
+        //pageLink.style.display = 'flex';
+        //pageLink.style.justifyContent = 'center';
+        //pageLink.style.alignItems = 'center';
+        //pageLink.style.gap = '5px';
+
         for (child of pageLink.children) {
             //console.log(child.tagName);
             if (child.tagName == "A") {
