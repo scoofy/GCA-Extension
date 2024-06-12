@@ -919,13 +919,13 @@ function messageIteration(messageContainerElement) {
     left_col.className = "new_left_col"
     left_col.style.width = 'fit-content';
     //left_col.style.flexShrink = 3;
-    left_col.style.flex = "0 3 25%";
+    left_col.style.flex = "0 1 25%";
     let right_col = baseColFlex();
     right_col.className = "new_right_col"
     //right_col.style.maxWidth = '75%';
     //right_col.style.flexShrink = 1;
     //right_col.style.flexGrow = 3;
-    right_col.style.flex = '1 3 75%';
+    right_col.style.flex = '0 1 75%';
 
     let wide_flex = baseFlex();
     wide_flex.className = "wide_flex";
