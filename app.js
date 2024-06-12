@@ -1,6 +1,21 @@
+//////////// full iteration at bottom of page ////////////
+//////////// CONFIG ////////////
 const testing = false;
+
 const dimPercentage = "10%";
 const notablePercentage = "60%"
+
+var body = returnSubTagSingletonElseStyleElement(document, 'body');
+
+var dateForm = document.getElementById('search_form');
+var dateTextNow = dateForm.textContent.replace('Search', '').replace('|  Calendar', '').trim();
+var relativeTimeNow = new Date(Date.parse(dateTextNow));
+
+const msPerMinute = 60 * 1000;
+const msPerHour = msPerMinute * 60;
+const msPerDay = msPerHour * 24;
+const msPerMonth = msPerDay * 30;
+const msPerYear = msPerDay * 365;
 
 const bbCodeClosingTags = [
     '[/li]',
@@ -51,64 +66,7 @@ const skippableInLineElements = [
 ];
 
 // USE ITERATION OVER REGEX, IT'S FASTER
-//const bbCodeClosingTagRegEx = /\[\/[a-zA-Z]+\]/g
-
-const msPerMinute = 60 * 1000;
-const msPerHour = msPerMinute * 60;
-const msPerDay = msPerHour * 24;
-const msPerMonth = msPerDay * 30;
-const msPerYear = msPerDay * 365;
-
-function timeDifference(current, previous) {
-    var elapsed = current - previous;
-    let time = 0;
-    let unit = '';
-    if (elapsed < msPerMinute) {
-        time = Math.round(elapsed / 1000);
-        unit = 'second';
-    } else if (elapsed < msPerHour) {
-        time = Math.round(elapsed / msPerMinute);
-        unit = 'minute';
-    } else if (elapsed < msPerDay) {
-        time = Math.round(elapsed / msPerHour);
-        unit = 'hour';
-    } else if (elapsed < msPerMonth) {
-        time = Math.round(elapsed / msPerDay);
-        unit = 'day';
-    } else if (elapsed < msPerYear) {
-        time = Math.round(elapsed / msPerMonth);
-        unit = 'month';
-    } else {
-        time = Math.round(elapsed / msPerYear);
-        unit = 'year';
-    }
-    if (!(time == 1)) {
-        unit = unit + "s";
-    }
-    return `${time} ${unit} ago`;
-}
-
-
-var body = returnSubTagSingletonElseStyleElement(document, 'body');
-body.style.display = "flex";
-body.style.flexDirection = "column";
-body.style.justifyContent = "space-between";
-addBorder(body, 'red', px = 10);
-
-var dateForm = document.getElementById('search_form');
-var dateTextNow = dateForm.textContent.replace('Search', '').replace('|  Calendar', '').trim();
-var relativeTimeNow = new Date(Date.parse(dateTextNow));
-
-function setAvatarSizesToDataSets(bodyTag) {
-    let avatar_divs = bodyTag.getElementsByClassName('avatar');
-    for (avatar of avatar_divs) {
-        if (avatar.tagName == "IMG") {
-            //console.log('setAvatarSizesToDataSets');
-            //console.log('height:', avatar.height);
-            //console.log('width:', avatar.width);
-        }
-    }
-}
+// const bbCodeClosingTagRegEx = /\[\/[a-zA-Z]+\]/g
 
 var addedStyleSheet = document.createElement("style");
 var myStyle = `
@@ -190,11 +148,47 @@ var myStyle = `
         .navbar-brand {
             padding: 12px 15px;
         }
+        #nice_gca_board_search_row {
+            flex-direction: column;
+        }
     }
     `;
 
 addedStyleSheet.innerText = myStyle;
 document.head.appendChild(addedStyleSheet);
+
+//////////// END CONFIG ////////////
+
+//////////// UTILITIES ////////////
+
+function timeDifference(current, previous) {
+    var elapsed = current - previous;
+    let time = 0;
+    let unit = '';
+    if (elapsed < msPerMinute) {
+        time = Math.round(elapsed / 1000);
+        unit = 'second';
+    } else if (elapsed < msPerHour) {
+        time = Math.round(elapsed / msPerMinute);
+        unit = 'minute';
+    } else if (elapsed < msPerDay) {
+        time = Math.round(elapsed / msPerHour);
+        unit = 'hour';
+    } else if (elapsed < msPerMonth) {
+        time = Math.round(elapsed / msPerDay);
+        unit = 'day';
+    } else if (elapsed < msPerYear) {
+        time = Math.round(elapsed / msPerMonth);
+        unit = 'month';
+    } else {
+        time = Math.round(elapsed / msPerYear);
+        unit = 'year';
+    }
+    if (!(time == 1)) {
+        unit = unit + "s";
+    }
+    return `${time} ${unit} ago`;
+}
 
 var base_flex = document.createElement("div");
 base_flex.style.display = "flex";
@@ -213,6 +207,376 @@ function baseColFlex() {
     return base_col_flex.cloneNode();
 }
 
+function returnSubClassSingletonElseStyleElement(parentElement, theClassName, returnNull = false) {
+    //console.log("returnSubClassSingletonElseStyleElement()");
+    let theElementList = parentElement.getElementsByClassName(theClassName);
+    let theElement = theElementList.item(0);
+    //console.log(theElement);
+    if (!theElement) {
+        if (returnNull) {
+            return null;
+        }
+        //console.log("STYLE!");
+        theElement = document.createElement("style");
+        //console.log(theElement);
+    }
+    return theElement;
+}
+
+function returnSubTagSingletonElseStyleElement(parentElement, theTagName, returnNull = false) {
+    //console.log("returnSubClassSingletonElseStyleElement()");
+    let theElementList = parentElement.getElementsByTagName(theTagName);
+    let theElement = theElementList.item(0);
+    //console.log(theElement);
+    if (!theElement) {
+        if (returnNull) {
+            return null;
+        }
+        //console.log("STYLE!");
+        theElement = document.createElement("style");
+        //console.log(theElement);
+    }
+    return theElement;
+}
+
+function addBorder(element, color, px = 1) {
+    if (testing) {
+        if (element) {
+            element.style.border = `solid ${px}px ${color}`;
+        } else {
+            //console.log(element);
+            throw new Error("element doesn't exist");
+        }
+    }
+}
+
+function calculateImgAspectRatioFit(img) {
+    //console.log('calculateImgAspectRatioFit(img)');
+    //console.log('THIS SHOULD ALWAYS BE AN IMAGE:')
+    //console.log(img);
+    //console.log(img.style.height);
+    //console.log(img.naturalHeight);
+
+    let srcWidth = img.naturalWidth;
+    //console.log('srcWidth:', srcWidth);
+
+    if (!srcWidth) {
+        //console.log('naturalWidth FAIL')
+        srcWidth = parseInt(img.style.width);
+        //console.log('style width:', srcWidth);
+    }
+    if (!srcWidth) {
+        return
+    }
+
+    let srcHeight = img.naturalHeight;
+    if (!srcHeight) {
+        srcHeight = parseInt(img.style.height);
+    }
+
+    let maxWidth = 100;
+    let maxHeight = 50;
+
+    //console.log(srcWidth, srcHeight, maxWidth, maxHeight);
+
+    let ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+
+    let ratioObj = {
+        width: srcWidth * ratio || 500,
+        height: srcHeight * ratio || 500,
+    };
+    //console.log('ratioObj:', ratioObj);
+
+
+    return ratioObj;
+}
+
+function thisResizeCalculation() {
+    this.maxWidth = 'none';
+    this.style.maxWidth = 'none';
+    this.style.maxHeight = 'none';
+    //console.log('this.dataset.thumbnail == false')
+    //console.log(this.dataset.thumbnail)
+    //console.log(this.dataset.thumbnail == false)
+    if (this.dataset.thumbnail == "false") {
+        aspect = calculateImgAspectRatioFit(this);
+        if (aspect) {
+            this.style.width = `${aspect.width}px`;
+            this.style.height = `${aspect.height}px`;
+            this.dataset.thumbnail = 'true';
+        }
+    } else {
+        this.style.width = `${this.naturalWidth}px`;
+        this.style.height = `${this.naturalHeight}px`;
+        this.dataset.thumbnail = 'false';
+    }
+    //console.log(this);
+}
+
+function resizeCalculation(img) {
+    img.maxWidth = 'none';
+    img.style.maxWidth = 'none';
+    img.style.maxHeight = 'none';
+    //console.log('this.dataset.thumbnail == false')
+    //console.log(img.dataset.thumbnail)
+    //console.log(img.dataset.thumbnail == false)
+    if (img.dataset.thumbnail == "false") {
+        aspect = calculateImgAspectRatioFit(img);
+        if (aspect) {
+            img.style.width = `${aspect.width}px`;
+            img.style.height = `${aspect.height}px`;
+            img.dataset.thumbnail = 'true';
+        }
+    } else {
+        img.style.width = `${img.naturalWidth}px`;
+        img.style.height = `${img.naturalHeight}px`;
+        img.dataset.thumbnail = 'false';
+    }
+    //console.log(img);
+}
+
+//////////// END UTILITIES ////////////
+
+//////////// TOPIC & BOARD FUNCTIONS ////////////
+
+function bodyToFlex() {
+    body.style.display = "flex";
+    body.style.flexDirection = "column";
+    body.style.justifyContent = "space-between";
+    body.style.paddingTop = "95px";
+    addBorder(body, 'red', px = 10);
+}
+
+function hideFatalAndClearFix() {
+    let element = document.getElementById('fatal_error');
+    element.style.display = "none";
+    let elements = document.querySelectorAll('.clearfix');
+    for (elem of elements) {
+        elem.style.display = "none";
+    }
+}
+
+function replyListToHamburger() {
+    let navPillsList = document.querySelectorAll('.nav-pills');
+    for (const [index, navPillsElement] of navPillsList.entries()) {
+        navPillsElement.style.display = "flex";
+        navPillsElement.style.flexDirection = "column";
+        navPillsElement.style.flexWrap = "wrap";
+
+        addedClassName = `navPillsHide${index}`;
+        let navPillsChildren = navPillsElement.children;
+        let count = 2;
+        let replyFlex = null;
+        for (elem of navPillsChildren) {
+            if (elem.className.includes('active')) {
+                replyFlex = elem;
+                elem.style.display = 'flex';
+                elem.style.order = 1
+            } else {
+                elem.style.visibility = 'collapse';
+                elem.classList.add(addedClassName);
+                elem.style.order = count;
+                count += 1;
+            }
+        }
+
+        if (replyFlex) {
+            let expandButtonDiv = document.createElement("div");
+            expandButtonDiv.className = "hideShowNavPillsList";
+            expandButtonDiv.style.display = "Flex";
+            expandButtonDiv.style.justifyContent = "center";
+            expandButtonDiv.style.alignItems = "center";
+            expandButtonDiv.style.width = '50px';
+            expandButtonDiv.style.cursor = 'pointer';
+
+            expandButtonDiv.onclick = function() {
+                let index = this.dataset.index;
+                let parent = this.parentElement.parentElement;
+                for (elem of parent.children) {
+                    if (!(elem.className.includes('active'))) {
+                        if (elem.className.includes('hideShowNavPillsList')) {
+                            if (elem.firstChild.textContent === "More") {
+                                elem.firstChild.textContent = "Less";
+                            } else {
+                                elem.firstChild.textContent = "More";
+                            }
+                        } else if (elem.style.visibility === 'collapse') {
+                            elem.style.visibility = 'visible';
+                        } else {
+                            elem.style.visibility = 'collapse';
+                        }
+                    }
+                }
+
+            };
+
+            let textSpan = document.createElement("div");
+            textSpan.textContent = "More";
+
+            expandButtonDiv.appendChild(textSpan);
+            replyFlex.appendChild(expandButtonDiv);
+        }
+    }
+}
+
+
+
+function cleanerNavBar() {
+    navbar = returnSubClassSingletonElseStyleElement(body, 'navbar-fixed-top');
+    navContainer = returnSubClassSingletonElseStyleElement(navbar, 'container');
+    navContainerClone = navContainer.cloneNode()
+
+    navContainerClone.style.width = "100%";
+    navContainerClone.style.display = "flex";
+    navContainerClone.style.justifyContent = "flex-end";
+    navContainerClone.style.alignItems = "center";
+    navContainerClone.style.flexWrap = "wrap";
+
+
+    brandSpacer = document.createElement("div");
+    brandSpacer.style.display = 'flex';
+    brandSpacer.style.justifyContent = 'space-between';
+    brandSpacer.style.alignItems = 'center';
+    brandSpacer.style.flexGrow = 2;
+
+    navbarBrand = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-brand');
+    navbarBrand.style.padding = '0px';
+    navbarBrand.style.display = 'flex';
+    navbarBrand.style.alignItems = 'center';
+
+    addBorder(navbarBrand, "PowderBlue");
+    brandSpacer.appendChild(navbarBrand);
+
+    brandImg = returnSubTagSingletonElseStyleElement(navbarBrand, 'img');
+    // hard coded actual image width:
+    // https://golfclubatlas.com/images/Golf-Club-Atlas-Logo.jpg
+    brandImg.style.width = '250px';
+    brandImg.style.height = 'auto';
+    brandImg.style.padding = '0px 6px';
+
+    let dummy_ul = document.createElement("ul");
+    dummy_ul.classList.add('nav');
+    dummy_ul.classList.add('navbar-nav');
+    dummy_ul.classList.add('gca-button');
+    let dummy_li = document.createElement("li");
+    let dummy_a = document.createElement("a");
+    let dummy_span = document.createElement("span");
+    addBorder(dummy_ul, 'red');
+
+
+    dummy_span.textContent = "More";
+
+
+    dummy_ul.onclick = function() {
+        //console.log('HERE WE GO!');
+        let parentContainer = this.parentElement.parentElement;
+        //console.log(parentContainer);
+        let unorderedListClones = parentContainer.getElementsByClassName('gca-collapse');
+        for (ulc of unorderedListClones) {
+            //console.log(ulc.style.visibility);
+            //console.log(ulc.style);
+            if (!ulc.style.visibility) {
+                ulc.style.width = 'fit-content';
+                ulc.style.visibility = 'visible';
+            } else {
+                if (ulc.style.visibility == 'collapse') {
+                    ulc.style.width = 'fit-content';
+                    ulc.style.visibility = 'visible';
+
+                } else if (ulc.style.visibility == 'visible') {
+                    ulc.style.width = '0px';
+                    ulc.style.visibility = 'collapse';
+                }
+            }
+        }
+        let thisSpan = returnSubTagSingletonElseStyleElement(this, 'span');
+        //console.log(thisSpan.textContent);
+        if (thisSpan.textContent.includes("More")) {
+            thisSpan.textContent = "✕";
+        } else {
+            thisSpan.textContent = "More";
+        }
+    };
+
+
+    dummy_a.appendChild(dummy_span);
+    dummy_li.appendChild(dummy_a);
+    dummy_ul.appendChild(dummy_li);
+    brandSpacer.appendChild(dummy_ul);
+
+
+    navContainerClone.appendChild(brandSpacer);
+
+
+
+    navbarCollapse = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-collapse');
+    collapseClassList = navbarCollapse.classList;
+    //console.log(collapseClassList);
+    for (unorderedList of navbarCollapse.children) {
+        let listItemList = [];
+        for (listItem of unorderedList.children) {
+            listItem.style.whiteSpace = 'nowrap';
+            listItem.style.width = 'fit-content !important';
+
+            //listItem.className = '';
+            //for (thisClassName of collapseClassList) {
+            //    //listItem.classList.add(thisClassName);
+            //}
+            addBorder(listItem, "PowderBlue");
+            listItemList.push(listItem);
+        }
+        for (listItem of listItemList) {
+            //let unorderedListClone = document.createElement("ul");
+            let unorderedListClone = unorderedList.cloneNode();
+            unorderedListClone.classList.add('gca-collapse');
+            addBorder(unorderedListClone, "PowderBlue");
+            unorderedListClone.appendChild(listItem);
+            navContainerClone.appendChild(unorderedListClone);
+        }
+    }
+    navbar.appendChild(navContainerClone);
+    navContainer.remove();
+}
+
+function pageLinksToButtons() {
+    pageLinks = document.getElementsByClassName('pagelinks');
+    for (pageLink of pageLinks) {
+        pageLink.style.fontSize = '14px';
+        for (child of pageLink.children) {
+            //console.log(child.tagName);
+            if (child.tagName == "A") {
+                child.style.padding = '1px 6px';
+                child.style.border = 'solid 1px #eee';
+                child.style.borderRadius = '3px';
+            }
+        }
+    }
+}
+
+function addExtensionFooterCitation() {
+    let footerSection = document.getElementById('footer_section')
+    let resetList = returnSubClassSingletonElseStyleElement(footerSection, 'reset');
+
+    let listItem = document.createElement('li');
+    let anchorSpan = document.createElement('a');
+    anchorSpan.textContent = "Nice GCA Extension";
+    anchorSpan.href = "https://github.com/scoofy/GCA-Extension";
+    listItem.appendChild(anchorSpan);
+    resetList.appendChild(listItem);
+}
+//////////// END TOPIC & BOARD FUNCTIONS ////////////
+
+//////////// TOPIC PAGE ONLY FUNCTIONS ////////////
+function setAvatarSizesToDataSets(bodyTag) {
+    let avatar_divs = bodyTag.getElementsByClassName('avatar');
+    for (avatar of avatar_divs) {
+        if (avatar.tagName == "IMG") {
+            //console.log('setAvatarSizesToDataSets');
+            //console.log('height:', avatar.height);
+            //console.log('width:', avatar.width);
+        }
+    }
+}
 
 
 function resizeImages() {
@@ -287,14 +651,7 @@ function hideNewbie() {
     }
 }
 
-function hideFatalAndClearFix() {
-    let element = document.getElementById('fatal_error');
-    element.style.display = "none";
-    let elements = document.querySelectorAll('.clearfix');
-    for (elem of elements) {
-        elem.style.display = "none";
-    }
-}
+
 
 function dimKeyInfo() {
     let keyInfos = document.querySelectorAll('.keyinfo');
@@ -431,138 +788,6 @@ function hideMessageIcons() {
     }
 }
 
-function replyListToHamburger() {
-    let navPillsList = document.querySelectorAll('.nav-pills');
-    for (const [index, navPillsElement] of navPillsList.entries()) {
-        navPillsElement.style.display = "flex";
-        navPillsElement.style.flexDirection = "column";
-        navPillsElement.style.flexWrap = "wrap";
-
-        addedClassName = `navPillsHide${index}`;
-        let navPillsChildren = navPillsElement.children;
-        let count = 2;
-        let replyFlex = null;
-        for (elem of navPillsChildren) {
-            if (elem.className.includes('active')) {
-                replyFlex = elem;
-                elem.style.display = 'flex';
-                elem.style.order = 1
-            } else {
-                elem.style.visibility = 'collapse';
-                elem.classList.add(addedClassName);
-                elem.style.order = count;
-                count += 1;
-            }
-        }
-
-        if (replyFlex) {
-            let expandButtonDiv = document.createElement("div");
-            expandButtonDiv.className = "hideShowNavPillsList";
-            expandButtonDiv.style.display = "Flex";
-            expandButtonDiv.style.justifyContent = "center";
-            expandButtonDiv.style.alignItems = "center";
-            expandButtonDiv.style.width = '50px';
-            expandButtonDiv.style.cursor = 'pointer';
-
-            expandButtonDiv.onclick = function() {
-                let index = this.dataset.index;
-                let parent = this.parentElement.parentElement;
-                for (elem of parent.children) {
-                    if (!(elem.className.includes('active'))) {
-                        if (elem.className.includes('hideShowNavPillsList')) {
-                            if (elem.firstChild.textContent === "More") {
-                                elem.firstChild.textContent = "Less";
-                            } else {
-                                elem.firstChild.textContent = "More";
-                            }
-                        } else if (elem.style.visibility === 'collapse') {
-                            elem.style.visibility = 'visible';
-                        } else {
-                            elem.style.visibility = 'collapse';
-                        }
-                    }
-                }
-
-            };
-
-            let textSpan = document.createElement("div");
-            textSpan.textContent = "More";
-
-            expandButtonDiv.appendChild(textSpan);
-            replyFlex.appendChild(expandButtonDiv);
-        }
-    }
-}
-
-function warningsFullVisibility() {
-    let messageContainers = document.querySelectorAll('.message_container');
-    for (container of messageContainers) {
-        let posterResponsive = container.getElementsByClassName('poster_responsive')[0];
-        let labelWarning = container.getElementsByClassName('label-warning')[0];
-        //let h4 = container.getElementsByTagName('h4')[0];
-
-        if (posterResponsive && labelWarning) {
-            //h4.style.width = "100%";
-            //h4.style.display = "flex";
-
-            posterResponsive.style.display = "flex";
-            posterResponsive.style.flexDirection = "column";
-            //posterResponsive.style.alignItems = "center";
-            posterResponsive.style.gap = "5px";
-
-            labelWarning.style.width = "fit-content";
-            labelWarning.style.marginLeft = "20px";
-
-            let br = document.createElement("br");
-            posterResponsive.appendChild(labelWarning);
-        }
-    }
-}
-//warningsFullVisibility()
-
-
-function returnSubClassSingletonElseStyleElement(parentElement, theClassName, returnNull = false) {
-    //console.log("returnSubClassSingletonElseStyleElement()");
-    let theElementList = parentElement.getElementsByClassName(theClassName);
-    let theElement = theElementList.item(0);
-    //console.log(theElement);
-    if (!theElement) {
-        if (returnNull) {
-            return null;
-        }
-        //console.log("STYLE!");
-        theElement = document.createElement("style");
-        //console.log(theElement);
-    }
-    return theElement;
-}
-
-function returnSubTagSingletonElseStyleElement(parentElement, theTagName, returnNull = false) {
-    //console.log("returnSubClassSingletonElseStyleElement()");
-    let theElementList = parentElement.getElementsByTagName(theTagName);
-    let theElement = theElementList.item(0);
-    //console.log(theElement);
-    if (!theElement) {
-        if (returnNull) {
-            return null;
-        }
-        //console.log("STYLE!");
-        theElement = document.createElement("style");
-        //console.log(theElement);
-    }
-    return theElement;
-}
-
-function addBorder(element, color, px = 1) {
-    if (testing) {
-        if (element) {
-            element.style.border = `solid ${px}px ${color}`;
-        } else {
-            //console.log(element);
-            throw new Error("element doesn't exist");
-        }
-    }
-}
 
 function formatExistingLeftColumn(leftCol, postTimeAgo) {
     let formatedLeftCol = baseColFlex();
@@ -595,92 +820,6 @@ function formatExistingLeftColumn(leftCol, postTimeAgo) {
         return formatedLeftCol;
     }
 }
-
-function calculateImgAspectRatioFit(img) {
-    //console.log('calculateImgAspectRatioFit(img)');
-    //console.log('THIS SHOULD ALWAYS BE AN IMAGE:')
-    //console.log(img);
-    //console.log(img.style.height);
-    //console.log(img.naturalHeight);
-
-    let srcWidth = img.naturalWidth;
-    //console.log('srcWidth:', srcWidth);
-
-    if (!srcWidth) {
-        //console.log('naturalWidth FAIL')
-        srcWidth = parseInt(img.style.width);
-        //console.log('style width:', srcWidth);
-    }
-    if (!srcWidth) {
-        return
-    }
-
-    let srcHeight = img.naturalHeight;
-    if (!srcHeight) {
-        srcHeight = parseInt(img.style.height);
-    }
-
-    let maxWidth = 100;
-    let maxHeight = 50;
-
-    //console.log(srcWidth, srcHeight, maxWidth, maxHeight);
-
-    let ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
-
-    let ratioObj = {
-        width: srcWidth * ratio || 500,
-        height: srcHeight * ratio || 500,
-    };
-    //console.log('ratioObj:', ratioObj);
-
-
-    return ratioObj;
-}
-
-function thisResizeCalculation() {
-    this.maxWidth = 'none';
-    this.style.maxWidth = 'none';
-    this.style.maxHeight = 'none';
-    //console.log('this.dataset.thumbnail == false')
-    //console.log(this.dataset.thumbnail)
-    //console.log(this.dataset.thumbnail == false)
-    if (this.dataset.thumbnail == "false") {
-        aspect = calculateImgAspectRatioFit(this);
-        if (aspect) {
-            this.style.width = `${aspect.width}px`;
-            this.style.height = `${aspect.height}px`;
-            this.dataset.thumbnail = 'true';
-        }
-    } else {
-        this.style.width = `${this.naturalWidth}px`;
-        this.style.height = `${this.naturalHeight}px`;
-        this.dataset.thumbnail = 'false';
-    }
-    //console.log(this);
-}
-
-function resizeCalculation(img) {
-    img.maxWidth = 'none';
-    img.style.maxWidth = 'none';
-    img.style.maxHeight = 'none';
-    //console.log('this.dataset.thumbnail == false')
-    //console.log(img.dataset.thumbnail)
-    //console.log(img.dataset.thumbnail == false)
-    if (img.dataset.thumbnail == "false") {
-        aspect = calculateImgAspectRatioFit(img);
-        if (aspect) {
-            img.style.width = `${aspect.width}px`;
-            img.style.height = `${aspect.height}px`;
-            img.dataset.thumbnail = 'true';
-        }
-    } else {
-        img.style.width = `${img.naturalWidth}px`;
-        img.style.height = `${img.naturalHeight}px`;
-        img.dataset.thumbnail = 'false';
-    }
-    //console.log(img);
-}
-
 
 function resizeAvatar(messageContainerElement) {
     let avatar_divs = messageContainerElement.getElementsByClassName('avatar');
@@ -940,7 +1079,40 @@ function removePreviousAndNextPageAndBackButtons() {
 function formatFirstRow() {
     let topRow = returnSubClassSingletonElseStyleElement(body, "row");
 
+    let colMd9 = returnSubClassSingletonElseStyleElement(body, 'col-md-9');
+    colMd9.style.margin = '0px';
+    colMd9.style.padding = '0px';
+    colMd9.style.display = 'flex';
+    colMd9.style.flexWrap = 'nowrap';
+    colMd9.style.justifyContent = "center";
+    colMd9.style.alignItems = "center";
+
+    colMd9.style.width = 'fit-content';
+    colMd9.style.flexShrink = '0';
+    colMd9.style.flexGrow = '20';
+
+    for (child of colMd9.children) {
+        //console.log('child');
+        //console.log(child);
+        child.style.margin = '0px';
+        child.style.padding = '0px';
+        addBorder(child, 'blue');
+        for (grandchild of child.children) {
+            //console.log('grandchild');
+            //console.log(grandchild);
+            grandchild.style.margin = '0px';
+            //grandchild.style.padding = '0px';
+            addBorder(grandchild, 'purple');
+        }
+    }
     let searchForm = document.getElementById('search_form');
+    searchForm.style.display = 'flex';
+    searchForm.style.justifyContent = "center";
+    searchForm.style.alignItems = "center";
+    searchForm.style.gap = "5px";
+
+
+    //let searchForm = document.getElementById('search_form');
 
     let layoutText = `
     <div class="col-md-9">
@@ -996,8 +1168,6 @@ function formatFirstRow() {
 
     }
 }
-
-
 
 function removeContainerHr() {
     for (element of body.children) {
@@ -1069,125 +1239,9 @@ function cleanerPageBar() {
     }
 }
 
-function cleanerNavBar() {
-    navbar = returnSubClassSingletonElseStyleElement(body, 'navbar-fixed-top');
-    navContainer = returnSubClassSingletonElseStyleElement(navbar, 'container');
-    navContainerClone = navContainer.cloneNode()
+function fullTopicPageIteration() {
+    bodyToFlex();
 
-    navContainerClone.style.width = "100%";
-    navContainerClone.style.display = "flex";
-    navContainerClone.style.justifyContent = "flex-end";
-    navContainerClone.style.alignItems = "center";
-    navContainerClone.style.flexWrap = "wrap";
-
-
-    brandSpacer = document.createElement("div");
-    brandSpacer.style.display = 'flex';
-    brandSpacer.style.justifyContent = 'space-between';
-    brandSpacer.style.alignItems = 'center';
-    brandSpacer.style.flexGrow = 2;
-
-    navbarBrand = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-brand');
-    navbarBrand.style.padding = '0px';
-    navbarBrand.style.display = 'flex';
-    navbarBrand.style.alignItems = 'center';
-
-    addBorder(navbarBrand, "PowderBlue");
-    brandSpacer.appendChild(navbarBrand);
-
-    brandImg = returnSubTagSingletonElseStyleElement(navbarBrand, 'img');
-    // hard coded actual image width:
-    // https://golfclubatlas.com/images/Golf-Club-Atlas-Logo.jpg
-    brandImg.style.width = '250px';
-    brandImg.style.height = 'auto';
-    brandImg.style.padding = '0px 6px';
-
-    let dummy_ul = document.createElement("ul");
-    dummy_ul.classList.add('nav');
-    dummy_ul.classList.add('navbar-nav');
-    dummy_ul.classList.add('gca-button');
-    let dummy_li = document.createElement("li");
-    let dummy_a = document.createElement("a");
-    let dummy_span = document.createElement("span");
-    addBorder(dummy_ul, 'red');
-
-
-    dummy_span.textContent = "More";
-
-
-    dummy_ul.onclick = function() {
-        //console.log('HERE WE GO!');
-        let parentContainer = this.parentElement.parentElement;
-        //console.log(parentContainer);
-        let unorderedListClones = parentContainer.getElementsByClassName('gca-collapse');
-        for (ulc of unorderedListClones) {
-            //console.log(ulc.style.visibility);
-            //console.log(ulc.style);
-            if (!ulc.style.visibility) {
-                ulc.style.width = 'fit-content';
-                ulc.style.visibility = 'visible';
-            } else {
-                if (ulc.style.visibility == 'collapse') {
-                    ulc.style.width = 'fit-content';
-                    ulc.style.visibility = 'visible';
-
-                } else if (ulc.style.visibility == 'visible') {
-                    ulc.style.width = '0px';
-                    ulc.style.visibility = 'collapse';
-                }
-            }
-        }
-        let thisSpan = returnSubTagSingletonElseStyleElement(this, 'span');
-        //console.log(thisSpan.textContent);
-        if (thisSpan.textContent.includes("More")) {
-            thisSpan.textContent = "✕";
-        } else {
-            thisSpan.textContent = "More";
-        }
-    };
-
-
-    dummy_a.appendChild(dummy_span);
-    dummy_li.appendChild(dummy_a);
-    dummy_ul.appendChild(dummy_li);
-    brandSpacer.appendChild(dummy_ul);
-
-
-    navContainerClone.appendChild(brandSpacer);
-
-
-
-    navbarCollapse = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-collapse');
-    collapseClassList = navbarCollapse.classList;
-    //console.log(collapseClassList);
-    for (unorderedList of navbarCollapse.children) {
-        let listItemList = [];
-        for (listItem of unorderedList.children) {
-            listItem.style.whiteSpace = 'nowrap';
-            listItem.style.width = 'fit-content !important';
-
-            //listItem.className = '';
-            //for (thisClassName of collapseClassList) {
-            //    //listItem.classList.add(thisClassName);
-            //}
-            addBorder(listItem, "PowderBlue");
-            listItemList.push(listItem);
-        }
-        for (listItem of listItemList) {
-            //let unorderedListClone = document.createElement("ul");
-            let unorderedListClone = unorderedList.cloneNode();
-            unorderedListClone.classList.add('gca-collapse');
-            addBorder(unorderedListClone, "PowderBlue");
-            unorderedListClone.appendChild(listItem);
-            navContainerClone.appendChild(unorderedListClone);
-        }
-    }
-    navbar.appendChild(navContainerClone);
-    navContainer.remove();
-}
-
-
-function fullPageIteration() {
     resizeImages();
     minFontSize();
     maxFontSize();
@@ -1212,11 +1266,106 @@ function fullPageIteration() {
     cleanerPageBar();
 
     forumIteration();
-    cleanerNavBar()
+    cleanerNavBar();
+    pageLinksToButtons();
+    addExtensionFooterCitation();
+
     //console.log('FULL PAGE ITERATION!!!')
 }
-fullPageIteration()
+//////////// END TOPIC PAGE ONLY FUNCTIONS ////////////
+
+//////////// BOARD PAGE ONLY FUNCTIONS ////////////
+
+function boardPageContainerFunctions() {
+    let containers = document.getElementsByClassName('container');
+    let boardContainer = containers[1];
+    boardContainer.style.display = 'flex';
+    boardContainer.style.flexDirection = 'column';
+    boardContainer.style.gap = '10px';
+}
+
+function moveInfoToSearchArea() {
+    let rowDiv = returnSubClassSingletonElseStyleElement(body, 'row');
+    rowDiv.style.display = "flex";
+    rowDiv.style.justifyContent = "space-between";
+    rowDiv.style.alignItems = "center";
+    rowDiv.style.gap = "5px";
+    rowDiv.id = "nice_gca_board_search_row";
+
+
+    addBorder(rowDiv, 'red');
+    let descriptionBoard = returnSubClassSingletonElseStyleElement(body, 'description_board')
+    descriptionBoard.style.margin = '0px';
+    descriptionBoard.style.padding = '5px';
+    descriptionBoard.style.flexShrink = '3';
+    descriptionBoard.style.flexWrap = 'wrap';
+
+
+    rowDiv.appendChild(descriptionBoard);
+}
+
+function removeBackButton() {
+    let centerTexts = document.getElementsByClassName('centertext');
+    for (centerText of centerTexts) {
+        //console.log(centerText)
+        for (child of centerText.children) {
+            //console.log('child');
+            //console.log(child);
+            //console.log(child.href);
+            if (child.href.startsWith('javascript')) {
+                centerText.style.display = 'none';
+            }
+        }
+    }
+}
 
 
 
-// end of line
+function fullBoardPageIteration() {
+    bodyToFlex();
+    hideFatalAndClearFix();
+    replyListToHamburger();
+    removeContainerHr();
+    formatFirstRow();
+    cleanerNavBar();
+
+    boardPageContainerFunctions();
+    moveInfoToSearchArea();
+    removeBackButton();
+    pageLinksToButtons();
+    addExtensionFooterCitation();
+    //console.log('FULL PAGE ITERATION!!!')
+}
+
+//////////// END BOARD PAGE ONLY FUNCTIONS ////////////
+//console.log('NICE GCA START!')
+//console.log('NICE GCA START!')
+//console.log('NICE GCA START!')
+//console.log('NICE GCA START!')
+//console.log('NICE GCA START!')
+//console.log(location.pathname);
+if (location.pathname.includes('topic')) {
+    fullTopicPageIteration();
+} else {
+    fullBoardPageIteration();
+}
+
+
+
+// WHAT?
+
+
+
+// MOAR SPACE!
+
+
+
+// MOAR!
+
+
+
+// MOAR!
+
+
+
+// END OF LINE
