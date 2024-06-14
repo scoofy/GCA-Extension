@@ -157,9 +157,79 @@ var myStyle = `
 addedStyleSheet.innerText = myStyle;
 document.head.appendChild(addedStyleSheet);
 
+var base_flex = document.createElement("div");
+base_flex.style.display = "flex";
+base_flex.style.gap = "5px";
+base_flex.style.padding = "5px";
+addBorder(base_flex, "#ccc");
+var base_col_flex = base_flex.cloneNode();
+base_col_flex.style.flexDirection = "column";
+
+function baseFlex() {
+    return base_flex.cloneNode();
+}
+
+function baseColFlex() {
+    return base_col_flex.cloneNode();
+}
 //////////// END CONFIG ////////////
 
 //////////// UTILITIES ////////////
+const my_id = 4878;
+var user_ids = new Set([]);
+
+function allUserIDsOnPage(element) {
+    let anchors = element.getElementsByTagName('a');
+    for (anchor of anchors) {
+        if (anchor.href.includes('u=')) {
+            let this_url = new URL(anchor.href);
+            let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
+            if (user_id) {
+                user_ids.add(user_id);
+            } else {
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+            }
+        }
+    }
+    console.log(user_ids);
+}
+//allUserIDsOnPage(document);
+
+function returnUserIDfromElement(element) {
+    let anchors = element.getElementsByTagName('a');
+    for (anchor of anchors) {
+        if (anchor.href.includes('u=')) {
+            let this_url = new URL(anchor.href);
+            let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
+            if (user_id) {
+                if (user_id == my_id) {
+                    console.log(this_url.search);
+                    console.log(my_id);
+                }
+                return user_id;
+            } else {
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+            }
+        }
+    }
+}
+
+function userIdElementCheckedRed(inputElement, outputElement) {
+    let user_id = returnUserIDfromElement(inputElement);
+    //console.log(user_id);
+    if (user_id == my_id) {
+        console.log(inputElement);
+        console.log(outputElement);
+        outputElement.style.border = "dashed 3px darkred";
+        return true;
+    }
+}
 
 function timeDifference(current, previous) {
     var elapsed = current - previous;
@@ -188,23 +258,6 @@ function timeDifference(current, previous) {
         unit = unit + "s";
     }
     return `${time} ${unit} ago`;
-}
-
-var base_flex = document.createElement("div");
-base_flex.style.display = "flex";
-base_flex.style.gap = "5px";
-base_flex.style.padding = "5px";
-addBorder(base_flex, "#ccc");
-
-var base_col_flex = base_flex.cloneNode();
-base_col_flex.style.flexDirection = "column";
-
-function baseFlex() {
-    return base_flex.cloneNode();
-}
-
-function baseColFlex() {
-    return base_col_flex.cloneNode();
 }
 
 function returnSubClassSingletonElseStyleElement(parentElement, theClassName, returnNull = false) {
@@ -915,6 +968,8 @@ function messageIteration(messageContainerElement) {
     col_flex.className = messageContainerElement.className;
     addBorder(col_flex, 'black');
 
+    userIdElementCheckedRed(messageContainerElement, col_flex);
+
     let left_col = baseColFlex();
     left_col.className = "new_left_col"
     left_col.style.width = 'fit-content';
@@ -1326,7 +1381,18 @@ function removeBackButton() {
     }
 }
 
-
+function allBoardPostsIteration() {
+    let tBody = returnSubTagSingletonElseStyleElement(body, "tbody");
+    for (tr of tBody.children) {
+        if (tr.tagName == "TR") {
+            let lastpost = returnSubClassSingletonElseStyleElement(tr, 'lastpost');
+            let isMe = userIdElementCheckedRed(lastpost, lastpost);
+            if (isMe) {
+                tr.style.opacity = "20%";
+            }
+        }
+    }
+}
 
 function fullBoardPageIteration() {
     bodyToFlex();
@@ -1340,6 +1406,9 @@ function fullBoardPageIteration() {
     moveInfoToSearchArea();
     removeBackButton();
     pageLinksToButtons();
+
+    allBoardPostsIteration()
+
     addExtensionFooterCitation();
     //console.log('FULL PAGE ITERATION!!!')
 }
