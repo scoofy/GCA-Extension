@@ -10,12 +10,20 @@ var body = returnSubTagSingletonElseStyleElement(document, 'body');
 var dateForm = document.getElementById('search_form');
 var dateTextNow = dateForm.textContent.replace('Search', '').replace('|  Calendar', '').trim();
 var relativeTimeNow = new Date(Date.parse(dateTextNow));
+var collapserCount = 0;
 
 const msPerMinute = 60 * 1000;
 const msPerHour = msPerMinute * 60;
 const msPerDay = msPerHour * 24;
 const msPerMonth = msPerDay * 30;
 const msPerYear = msPerDay * 365;
+
+const rightArrow = '\u25BC';
+//const downArrow = '\u25B6';
+//const upArrow = '\u25B2';
+//const plusWide = '\uFF0B';
+//const minusWide = '\uFF0D';
+
 
 const bbCodeClosingTags = [
     '[/li]',
@@ -97,6 +105,9 @@ var myStyle = `
         border-color: #269abc;
         text-decoration: none;
     }
+    .gca_fade_button:hover {
+        text-decoration: none;
+    }
 
     @media (min-width: 768px) {
         .gca-button {
@@ -104,7 +115,6 @@ var myStyle = `
         }
         .gca-collapse {
             visibility: visible !important;
-            width: fit-content !important;
         }
 
     }
@@ -172,10 +182,43 @@ function baseFlex() {
 function baseColFlex() {
     return base_col_flex.cloneNode();
 }
+
+const collapserButtonClass = 'gca_collapser_button';
+const collapserRowClass = 'gca_collapser_row';
+const gcaFadeElementClass = 'gca_fade_element';
+const gcaFadeButtonClass = 'gca_fade_button';
+const gcaDontFadeThisClass = 'gca_dont_fade_this';
+const decreaseFadeButtonClass = 'gca_decrease_fade';
+const increaseFadeButtonClass = 'gca_increase_fade';
+const muteButtonClass = 'gca_mute_button';
+
+const maxMuteLevel = 100;
+const minMuteLevel = 0;
+const middleMuteLevel = 50;
+const muteClickUnits = 10;
+
 //////////// END CONFIG ////////////
 
 //////////// UTILITIES ////////////
 const my_id = 4878;
+const sean_a = 2756;
+const chris_h = 4880;
+
+var mute_dict = {
+    [my_id]: {
+        'muteLevel': 100
+    },
+    [sean_a]: {
+        'muteLevel': 20
+    },
+    [chris_h]: {
+        'muteLevel': 80
+    },
+}
+console.log(mute_dict);
+console.log(mute_dict[4878].muteLevel);
+
+const blockFade = "10%";
 var user_ids = new Set([]);
 
 function allUserIDsOnPage(element) {
@@ -198,6 +241,19 @@ function allUserIDsOnPage(element) {
 }
 //allUserIDsOnPage(document);
 
+/// MUTE USERS ///
+
+function returnMuteLevelFromUserId(user_id) {
+    if (mute_dict[user_id]) {
+        return mute_dict[user_id].muteLevel;
+    }
+}
+
+function returnMuteLevelFromElement(inputElement) {
+    let user_id = returnUserIDfromElement(inputElement);
+    return returnMuteLevelFromUserId(user_id)
+}
+
 function returnUserIDfromElement(element) {
     let anchors = element.getElementsByTagName('a');
     for (anchor of anchors) {
@@ -206,8 +262,8 @@ function returnUserIDfromElement(element) {
             let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
             if (user_id) {
                 if (user_id == my_id) {
-                    console.log(this_url.search);
-                    console.log(my_id);
+                    //console.log(this_url.search);
+                    //console.log(my_id);
                 }
                 return user_id;
             } else {
@@ -215,21 +271,241 @@ function returnUserIDfromElement(element) {
                 console.log('ERROR ERROR ERROR!')
                 console.log('ERROR ERROR ERROR!')
                 console.log('ERROR ERROR ERROR!')
+                throw new Error(`${anchor.href} does not end "action" with user id `);
             }
         }
     }
 }
 
+function clickCollapserButton(element) {
+    collapserButton = returnSubClassSingletonElseStyleElement(element, collapserButtonClass);
+    for (child of collapserButton.parentElement.parentElement.children) {
+        if (child.classList.contains(collapserButton.dataset.id)) {
+            if (child.style.visibility == 'collapse') {
+                child.style.visibility = 'visible';
+                collapserButton.textContent = '\uFF0D';
+            } else {
+                child.style.visibility = 'collapse';
+                //collapserButton.textContent = '\uFF0B';
+                collapserButton.textContent = '\xa0';
+            }
+        }
+    }
+}
+
+function returnNewCollapserElement(parentElement) {
+    let collapserID = `gca_collapser_${collapserCount}`;
+    collapserCount += 1;
+
+    let collapserButton = document.createElement("div");
+    collapserButton.id = collapserID;
+    collapserButton.dataset.id = collapserID;
+
+    collapserButton.classList.add(collapserButtonClass);
+    collapserButton.textContent = '\uFF0D';
+
+    if (parentElement.classList.contains('windowbg')) {
+        collapserButton.style.color = '#bbb';
+        collapserButton.style.border = 'solid 1px #bbb';
+
+    } else if (parentElement.classList.contains('windowbg2')) {
+        collapserButton.style.color = '#fff';
+        collapserButton.style.border = 'solid 1px #fff';
+    }
+
+    collapserButton.style.borderRadius = '5px';
+    //collapserButton.style.padding = '0px 2px';
+    //collapserButton.style.lineHeight = '70%';
+    collapserButton.style.padding = '0px';
+    collapserButton.style.textAlign = 'center';
+    collapserButton.style.width = '16px';
+
+    collapserButton.style.fontSize = '10px';
+    collapserButton.style.cursor = 'pointer';
+
+    collapserButton.onclick = function() {
+        for (child of this.parentElement.parentElement.children) {
+            if (child.classList.contains(this.dataset.id)) {
+                if (child.style.visibility == 'collapse') {
+                    child.style.visibility = 'visible';
+                    this.textContent = '\uFF0D';
+                } else {
+                    child.style.visibility = 'collapse';
+                    //this.textContent = '\uFF0B';
+                    this.textContent = '\xa0';
+                }
+            }
+        }
+    }
+
+    let collapserRow = baseFlex();
+    collapserRow.className = collapserRowClass;
+    collapserRow.style.padding = '0px';
+    collapserRow.style.margin = '0px';
+    collapserRow.style.justifyContent = 'flex-end'
+    collapserRow.appendChild(collapserButton);
+
+    return collapserRow;
+}
+
+function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
+    if (muteLevel != recursionElement.dataset.muteLevel) {
+        // set dataset elements
+        recursionElement.dataset.muteLevel = muteLevel;
+
+        // changes to top level of post only
+        if (topLevel) {
+            let collapserRowElement = null;
+            let collapserButton = null;
+            if (muteLevel == maxMuteLevel) {
+                collapserRowElement = returnNewCollapserElement(recursionElement);
+                collapserButton = returnSubClassSingletonElseStyleElement(collapserRowElement, collapserButtonClass);
+            }
+
+
+            for (child of recursionElement.children) {
+                if (muteLevel == maxMuteLevel) {
+                    child.classList.add(collapserButton.dataset.id);
+                }
+                if (!child.classList.contains(gcaDontFadeThisClass)) {
+                    child.style.opacity = `${maxMuteLevel - (muteLevel/2)}%`;
+                    //postElement.style.color = 'Green';
+                    if (muteLevel >= middleMuteLevel) {
+                        child.style.opacity = `${maxMuteLevel - (muteLevel/1.2)}%`;
+                        //postElement.style.color = 'GoldenRod';
+                    }
+                    if (muteLevel >= maxMuteLevel) {
+                        child.style.opacity = '20%';
+                        //postElement.style.color = 'Red';
+                    }
+                }
+
+            }
+            // reset muteing buttons
+            if (muteLevel == minMuteLevel) {
+                let decreaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, decreaseFadeButtonClass);
+                decreaseFadeButton.style.opacity = 0;
+            } else if (muteLevel == maxMuteLevel) {
+                recursionElement.insertBefore(collapserRowElement, recursionElement.firstChild);
+                clickCollapserButton(recursionElement);
+
+                let increaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, increaseFadeButtonClass);
+                increaseFadeButton.style.opacity = 0;
+                let muteButton = returnSubClassSingletonElseStyleElement(recursionElement, muteButtonClass);
+                muteButton.style.opacity = 0;
+            } else {
+                let decreaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, decreaseFadeButtonClass);
+                decreaseFadeButton.style.opacity = 1;
+                let increaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, increaseFadeButtonClass);
+                increaseFadeButton.style.opacity = 1;
+                let muteButton = returnSubClassSingletonElseStyleElement(recursionElement, muteButtonClass);
+                muteButton.style.opacity = 1;
+            }
+        }
+
+        for (child of recursionElement.children) {
+            formatMutedElement(child, muteLevel, topLevel = false);
+        }
+
+        // execute fade process:
+
+        // firse: get original colors, etc
+        if (!recursionElement.dataset.faded) {
+            if (recursionElement.classList.contains('btn-info')) {
+                recursionElement.dataset.borderColor = recursionElement.style.borderColor;
+                recursionElement.dataset.backgroundColor = recursionElement.style.backgroundColor;
+            } else {
+                recursionElement.dataset.color = recursionElement.style.color;
+            }
+            if (recursionElement.tagName == 'IMG') {
+                recursionElement.dataset.display = recursionElement.style.display;
+            }
+        }
+        recursionElement.dataset.faded = muteLevel > minMuteLevel
+        // if not muted, restore original colors
+        if (muteLevel == minMuteLevel) {
+            // just fyi... if condition ? return_true_condition: else return_false_condition;
+            if (recursionElement.classList.contains('btn-info')) {
+                recursionElement.style.borderColor = recursionElement.dataset.borderColor ? recursionElement.dataset.borderColor : '';
+                recursionElement.style.backgroundColor = recursionElement.dataset.backgroundColor ? recursionElement.dataset.backgroundColor : '';
+            } else {
+                recursionElement.style.color = recursionElement.dataset.color ? recursionElement.dataset.color : '';
+            }
+            if (recursionElement.tagName == 'IMG') {
+                recursionElement.style.display = recursionElement.dataset.display ? recursionElement.dataset.display : '';
+            }
+        } else {
+            // recursion for all lower level changes
+            // maninely used to set color
+
+            // buttons have white text not marked as white text
+            if (recursionElement.classList.contains('btn-info')) {
+                recursionElement.style.backgroundColor = '#bbb';
+                recursionElement.style.borderColor = '#aaa';
+
+            } else {
+                recursionElement.style.color = '#111';
+            }
+            if (muteLevel >= maxMuteLevel) {
+                if (recursionElement.tagName == 'IMG') {
+                    recursionElement.style.display = 'none';
+                }
+            }
+        }
+    }
+}
+
+
+function muteIteration() {
+    messages = document.querySelectorAll('.message_container');
+    for (message of messages) {
+        muteLevel = returnMuteLevelFromElement(message);
+        formatMutedElement(message, muteLevel);
+    }
+
+    ' for some reason the elements are not coming back to life '
+    ' maybe created a database of what stuff used to look like? '
+
+}
+
+function fullMute(muteButton) {
+    user_id = muteButton.dataset.userId;
+    userData = mute_dict[user_id];
+    userData['muteLevel'] = maxMuteLevel;
+    muteIteration();
+    console.log(userData);
+}
+
+function increaseMute(increaseFadeButton) {
+    user_id = increaseFadeButton.dataset.userId;
+    userData = mute_dict[user_id];
+    userData['muteLevel'] = Math.min(maxMuteLevel, userData['muteLevel'] + muteClickUnits);
+    muteIteration();
+    console.log(userData);
+}
+
+function decreaseMute(decreaseFadeButton) {
+    user_id = decreaseFadeButton.dataset.userId;
+    userData = mute_dict[user_id];
+    userData['muteLevel'] = Math.max(minMuteLevel, userData['muteLevel'] - muteClickUnits);
+    muteIteration();
+    console.log(userData);
+}
+
 function userIdElementCheckedRed(inputElement, outputElement) {
     let user_id = returnUserIDfromElement(inputElement);
+    let muteLevel = returnMuteLevelFromUserId(user_id)
     //console.log(user_id);
-    if (user_id == my_id) {
-        console.log(inputElement);
-        console.log(outputElement);
+    if (muteLevel) {
+        //console.log(inputElement);
+        //console.log(outputElement);
+        formatMutedElement(outputElement, muteLevel);
         outputElement.style.border = "dashed 3px darkred";
         return true;
     }
 }
+
+
 
 function timeDifference(current, previous) {
     var elapsed = current - previous;
@@ -956,7 +1232,102 @@ function returnPostTimeAgo(messageContainerElement) {
     return timeAgo;
 }
 
+function addRespondButtonClasses(newButton) {
+    let respondButtonClasses = ['btn', 'btn-info', 'btn-sm'];
+    for (btnClass of respondButtonClasses) {
+        newButton.classList.add(btnClass);
+    }
+    return newButton;
+}
+
+function createMuteButtons(user_id) {
+    let toggleButton = document.createElement("a");
+    toggleButton.classList.add(gcaFadeElementClass);
+    toggleButton.classList.add(gcaFadeButtonClass);
+    toggleButton.classList.add(gcaDontFadeThisClass);
+
+    toggleButton.padding = '0px';
+    toggleButton.margin = '0px';
+    toggleButton.border = 'none';
+    toggleButton.textContent = '';
+
+    toggleButton.style.display = 'flex';
+    toggleButton.style.flexDirection = 'column';
+
+    let arrowButton = document.createElement("a");
+    arrowButton = addRespondButtonClasses(arrowButton);
+    arrowButton.classList.add(gcaFadeElementClass);
+    arrowButton.classList.add(gcaFadeButtonClass);
+    arrowButton.classList.add(gcaDontFadeThisClass);
+
+    arrowButton.padding = '0px';
+    arrowButton.margin = '0px';
+
+    // quick clones with classes added
+    let increaseFadeButton = arrowButton.cloneNode();
+    let decreaseFadeButton = arrowButton.cloneNode();
+    let muteButton = arrowButton.cloneNode();
+
+    arrowButton.textContent = 'Fade';
+    arrowButton.onclick = function() {
+        if (this.textContent == 'Fade') {
+            this.textContent = '(Fade)';
+            this.nextElementSibling.style.visibility = 'visible';
+        } else {
+            this.textContent = 'Fade';
+            this.nextElementSibling.style.visibility = 'collapse';
+        }
+    }
+
+    toggleButton.appendChild(arrowButton);
+
+    let buttonHolderFlex = baseColFlex();
+    buttonHolderFlex.classList.add(gcaFadeElementClass);
+    buttonHolderFlex.classList.add(gcaDontFadeThisClass);
+
+    buttonHolderFlex.padding = '0px';
+    buttonHolderFlex.margin = '0px';
+    buttonHolderFlex.style.visibility = 'collapse';
+
+    // no adding classed because cloned
+    increaseFadeButton.classList.add(increaseFadeButtonClass);
+    increaseFadeButton.textContent = 'More';
+    increaseFadeButton.dataset.userId = user_id;
+    increaseFadeButton.onclick = function() {
+        increaseMute(this);
+    }
+
+    // no adding extra classed because cloned
+    decreaseFadeButton.classList.add(decreaseFadeButtonClass);
+    decreaseFadeButton.textContent = 'Less';
+    decreaseFadeButton.style.textDecoration = 'none';
+    decreaseFadeButton.style.userSelect = 'none';
+    decreaseFadeButton.dataset.userId = user_id;
+    decreaseFadeButton.onclick = function() {
+        decreaseMute(this);
+    }
+
+    // no adding classed because cloned
+    muteButton.classList.add(muteButtonClass);
+    muteButton.textContent = 'Mute';
+    muteButton.dataset.userId = user_id;
+    muteButton.onclick = function() {
+        fullMute(this);
+    }
+
+    buttonHolderFlex.appendChild(increaseFadeButton);
+    buttonHolderFlex.appendChild(decreaseFadeButton);
+    buttonHolderFlex.appendChild(muteButton);
+
+    toggleButton.appendChild(buttonHolderFlex);
+
+    return toggleButton;
+}
+
+
 function messageIteration(messageContainerElement) {
+    let user_id = returnUserIDfromElement(messageContainerElement);
+
     // class = "windowbg row message_container"
     // or
     // class = "windowbg2 row message_container"
@@ -967,8 +1338,6 @@ function messageIteration(messageContainerElement) {
     let col_flex = baseColFlex();
     col_flex.className = messageContainerElement.className;
     addBorder(col_flex, 'black');
-
-    userIdElementCheckedRed(messageContainerElement, col_flex);
 
     let left_col = baseColFlex();
     left_col.className = "new_left_col"
@@ -1044,25 +1413,26 @@ function messageIteration(messageContainerElement) {
     addBorder(buttons, "BurlyWood");
 
 
-    let firstButton = returnSubTagSingletonElseStyleElement(buttons, "a");
-    let newButton = firstButton.cloneNode();
-    if (firstButton.tagName == "A") {
-        newButton.removeAttribute("href");
-    } else {
-        newButton = document.createElement("a");
-        newButton.className = "extensionNewInfoButton";
-    }
+    let infoButton = document.createElement("a");
+    infoButton = addRespondButtonClasses(infoButton);
+    infoButton.classList.add("extensionNewInfoButton");
 
-    //console.log(newButton);
-    newButton.textContent = "Info";
-    newButton.onclick = function() {
+    //console.log(infoButton);
+    infoButton.textContent = "Info";
+    infoButton.onclick = function() {
         if (footer_info_col.style.visibility == 'visible') {
             footer_info_col.style.visibility = 'collapse';
         } else {
             footer_info_col.style.visibility = 'visible';
         }
     }
-    buttons.appendChild(newButton);
+    buttons.appendChild(infoButton);
+
+    let toggleButton = createMuteButtons(user_id);
+
+    buttons.appendChild(toggleButton);
+
+
 
     footer_info_col.appendChild(subject_info);
     footer_info_col.appendChild(moderation);
@@ -1072,6 +1442,8 @@ function messageIteration(messageContainerElement) {
     footer_flex.appendChild(footer_info_col);
     footer_flex.appendChild(footer_button_col);
     footer_flex.style.justifyContent = 'space-between';
+    // don't fade footer items
+    footer_flex.classList.add(gcaDontFadeThisClass);
 
 
     right_col.appendChild(post);
@@ -1097,6 +1469,9 @@ function messageIteration(messageContainerElement) {
     col_flex.appendChild(footer_flex);
 
     resizeAvatar(col_flex);
+
+
+
     return col_flex;
 }
 
@@ -1332,6 +1707,8 @@ function fullTopicPageIteration() {
     pageLinksToButtons();
     addExtensionFooterCitation();
 
+    muteIteration();
+
     //console.log('FULL PAGE ITERATION!!!')
 }
 //////////// END TOPIC PAGE ONLY FUNCTIONS ////////////
@@ -1388,7 +1765,7 @@ function allBoardPostsIteration() {
             let lastpost = returnSubClassSingletonElseStyleElement(tr, 'lastpost');
             let isMe = userIdElementCheckedRed(lastpost, lastpost);
             if (isMe) {
-                tr.style.opacity = "20%";
+                tr.style.opacity = blockFade;
             }
         }
     }
