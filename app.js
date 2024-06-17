@@ -1,4 +1,61 @@
+/*console.log('START TEST');
+
+
+
+
+async function returnKitten(item) {
+    return await item.kitten;
+}
+
+function gotKitten(item) {
+    console.log(`${item.kitten.name} has ${item.kitten.eyeCount} eyes`);
+}
+
+function gotMonster(item) {
+    console.log(`${item.monster.name} has ${item.monster.eyeCount} eyes`);
+}
+
+function gotMuteDict(item) {
+    console.log('MUTE DICT:');
+    console.log(item)
+}
+
+
+
+// define 2 objects
+let monster = {
+    name: "Kraken",
+    tentacles: true,
+    eyeCount: 10,
+};
+
+let kitten = {
+    name: "Moggy",
+    tentacles: false,
+    eyeCount: 2,
+};
+
+// store the objects
+browser.storage.local.set({
+    kitten,
+    monster
+}).then(setItem, onError);
+
+browser.storage.local.get("kitten").then(gotKitten, onError);
+browser.storage.local.get("monster").then(gotMonster, onError);
+
+console.log('END TEST');*/
+
+function setItem() {
+    console.log("OK");
+}
+
+function onError(error) {
+    console.log(error);
+}
+
 //////////// full iteration at bottom of page ////////////
+console.log('START Extension')
 //////////// CONFIG ////////////
 const testing = false;
 
@@ -77,6 +134,7 @@ const skippableInLineElements = [
 // const bbCodeClosingTagRegEx = /\[\/[a-zA-Z]+\]/g
 
 var addedStyleSheet = document.createElement("style");
+addedStyleSheet.className = "gca-stylesheet";
 var myStyle = `
     .container {
         min-height: 0px !important;
@@ -105,7 +163,7 @@ var myStyle = `
         border-color: #269abc;
         text-decoration: none;
     }
-    .gca_fade_button:hover {
+    .gca_fade_element:hover {
         text-decoration: none;
     }
 
@@ -198,25 +256,45 @@ const middleMuteLevel = 50;
 const muteClickUnits = 10;
 
 //////////// END CONFIG ////////////
+//////////// STORAGE ////////////
+var mute_dict = {}
+//console.log('INIT MUTE DICT:');
+//console.log(mute_dict);
+//if (!mute_dict) {
+//    mute_dict = {
+//        name: "mute_dict"
+//    };
+//}
 
+//const my_id = returnFormattedUserId(4878);
+//const sean_a = returnFormattedUserId(2756);
+//const chris_h = returnFormattedUserId(4880);
+
+//mute_dict[my_id] = 100;;
+//mute_dict[sean_a] = 20;
+//mute_dict[chris_h] = 80;
+
+//console.log(mute_dict);
+//console.log(mute_dict[`user${my_id}`]);
+
+//console.log('SET MUTE DICT');
+
+//browser.storage.local.set({
+//    'mute_dict': mute_dict
+//});
+//console.log('MUTE DICT SET');
+
+//mute_dict = browser.storage.local.get('mute_dict').then(gotMuteDict, onError);
+//console.log('RESET MUTE DICT:');
+//console.log(mute_dict);
+
+
+//////////// END STORAGE ////////////
 //////////// UTILITIES ////////////
-const my_id = 4878;
-const sean_a = 2756;
-const chris_h = 4880;
 
-var mute_dict = {
-    [my_id]: {
-        'muteLevel': 100
-    },
-    [sean_a]: {
-        'muteLevel': 20
-    },
-    [chris_h]: {
-        'muteLevel': 80
-    },
+function returnFormattedUserId(user_id) {
+    return `user${user_id}`;
 }
-console.log(mute_dict);
-console.log(mute_dict[4878].muteLevel);
 
 const blockFade = "10%";
 var user_ids = new Set([]);
@@ -226,8 +304,9 @@ function allUserIDsOnPage(element) {
     for (anchor of anchors) {
         if (anchor.href.includes('u=')) {
             let this_url = new URL(anchor.href);
-            let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
-            if (user_id) {
+            let user_num = parseInt(this_url.searchParams.get('action').split('u=')[1]);
+            if (user_num) {
+                let user_id = returnFormattedUserId(user_num)
                 user_ids.add(user_id);
             } else {
                 console.log('ERROR ERROR ERROR!')
@@ -245,7 +324,7 @@ function allUserIDsOnPage(element) {
 
 function returnMuteLevelFromUserId(user_id) {
     if (mute_dict[user_id]) {
-        return mute_dict[user_id].muteLevel;
+        return mute_dict[user_id];
     }
 }
 
@@ -259,12 +338,13 @@ function returnUserIDfromElement(element) {
     for (anchor of anchors) {
         if (anchor.href.includes('u=')) {
             let this_url = new URL(anchor.href);
-            let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
-            if (user_id) {
-                if (user_id == my_id) {
-                    //console.log(this_url.search);
-                    //console.log(my_id);
-                }
+            let user_num = parseInt(this_url.searchParams.get('action').split('u=')[1]);
+            if (user_num) {
+                let user_id = returnFormattedUserId(user_num);
+                //if (user_id == my_id) {
+                //    console.log(this_url.search);
+                //    console.log(my_id);
+                //}
                 return user_id;
             } else {
                 console.log('ERROR ERROR ERROR!')
@@ -282,7 +362,7 @@ function clickCollapserButton(element) {
     for (child of collapserButton.parentElement.parentElement.children) {
         if (child.classList.contains(collapserButton.dataset.id)) {
             if (child.style.visibility == 'collapse') {
-                child.style.visibility = 'visible';
+                child.style.visibility = '';
                 collapserButton.textContent = '\uFF0D';
             } else {
                 child.style.visibility = 'collapse';
@@ -327,7 +407,7 @@ function returnNewCollapserElement(parentElement) {
         for (child of this.parentElement.parentElement.children) {
             if (child.classList.contains(this.dataset.id)) {
                 if (child.style.visibility == 'collapse') {
-                    child.style.visibility = 'visible';
+                    child.style.visibility = '';
                     this.textContent = '\uFF0D';
                 } else {
                     child.style.visibility = 'collapse';
@@ -468,28 +548,53 @@ function muteIteration() {
 
 }
 
+
+
+function returnMuteLevel(user_id) {
+    let muteLevel = mute_dict[user_id];
+    if (!muteLevel) {
+        muteLevel = 0;
+    }
+    return muteLevel
+}
+
+function setMuteLevel(user_id, userData) {
+    mute_dict[user_id] = userData;
+    browser.storage.local.set({
+        mute_dict
+    }).then(setItem, onError);
+}
+
 function fullMute(muteButton) {
-    user_id = muteButton.dataset.userId;
-    userData = mute_dict[user_id];
-    userData['muteLevel'] = maxMuteLevel;
+    let user_id = muteButton.dataset.userId;
+    let muteLevel = maxMuteLevel;
+    setMuteLevel(user_id, muteLevel);
+    let toggleButton = returnSubClassSingletonElseStyleElement(muteButton.parentElement.parentElement, gcaFadeButtonClass);
+    toggleButton.textContent = `Fade (${muteLevel}%)`;
     muteIteration();
-    console.log(userData);
+    console.log(`new muteLevel: ${muteLevel}`);
 }
 
 function increaseMute(increaseFadeButton) {
-    user_id = increaseFadeButton.dataset.userId;
-    userData = mute_dict[user_id];
-    userData['muteLevel'] = Math.min(maxMuteLevel, userData['muteLevel'] + muteClickUnits);
+    let user_id = increaseFadeButton.dataset.userId;
+    let muteLevel = returnMuteLevel(user_id);
+    muteLevel = Math.min(maxMuteLevel, muteLevel + muteClickUnits);
+    setMuteLevel(user_id, muteLevel);
+    let toggleButton = returnSubClassSingletonElseStyleElement(increaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
+    toggleButton.textContent = `Fade (${muteLevel}%)`;
     muteIteration();
-    console.log(userData);
+    console.log(`new muteLevel: ${muteLevel}`);
 }
 
 function decreaseMute(decreaseFadeButton) {
-    user_id = decreaseFadeButton.dataset.userId;
-    userData = mute_dict[user_id];
-    userData['muteLevel'] = Math.max(minMuteLevel, userData['muteLevel'] - muteClickUnits);
+    let user_id = decreaseFadeButton.dataset.userId;
+    let muteLevel = returnMuteLevel(user_id);
+    muteLevel = Math.max(minMuteLevel, muteLevel - muteClickUnits);
+    setMuteLevel(user_id, muteLevel);
+    let toggleButton = returnSubClassSingletonElseStyleElement(decreaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
+    toggleButton.textContent = `Fade (${muteLevel}%)`;
     muteIteration();
-    console.log(userData);
+    console.log(`new muteLevel: ${muteLevel}`);
 }
 
 function userIdElementCheckedRed(inputElement, outputElement) {
@@ -1022,7 +1127,7 @@ function blockquoteFormatting() {
         blockImgs = block.getElementsByTagName('img');
         for (img of blockImgs) {
             img.style.maxHeight = "50px";
-            img.style.maxWidth = 'none';
+            img.style.maxWidth = '';
             img.style.width = 'auto';
             img.dataset.thumbnail = 'true';
             //console.log((img)
@@ -1241,45 +1346,45 @@ function addRespondButtonClasses(newButton) {
 }
 
 function createMuteButtons(user_id) {
+    let muteButtonFlexAnchor = document.createElement("a");
+    muteButtonFlexAnchor.classList.add(gcaFadeElementClass);
+    muteButtonFlexAnchor.classList.add(gcaDontFadeThisClass);
+
+    muteButtonFlexAnchor.padding = '0px';
+    muteButtonFlexAnchor.margin = '0px';
+    muteButtonFlexAnchor.border = 'none';
+    muteButtonFlexAnchor.textContent = '';
+
+    muteButtonFlexAnchor.style.display = 'flex';
+    muteButtonFlexAnchor.style.flexDirection = 'column';
+
     let toggleButton = document.createElement("a");
+    toggleButton = addRespondButtonClasses(toggleButton);
     toggleButton.classList.add(gcaFadeElementClass);
     toggleButton.classList.add(gcaFadeButtonClass);
     toggleButton.classList.add(gcaDontFadeThisClass);
 
     toggleButton.padding = '0px';
     toggleButton.margin = '0px';
-    toggleButton.border = 'none';
-    toggleButton.textContent = '';
-
-    toggleButton.style.display = 'flex';
-    toggleButton.style.flexDirection = 'column';
-
-    let arrowButton = document.createElement("a");
-    arrowButton = addRespondButtonClasses(arrowButton);
-    arrowButton.classList.add(gcaFadeElementClass);
-    arrowButton.classList.add(gcaFadeButtonClass);
-    arrowButton.classList.add(gcaDontFadeThisClass);
-
-    arrowButton.padding = '0px';
-    arrowButton.margin = '0px';
 
     // quick clones with classes added
-    let increaseFadeButton = arrowButton.cloneNode();
-    let decreaseFadeButton = arrowButton.cloneNode();
-    let muteButton = arrowButton.cloneNode();
+    let increaseFadeButton = toggleButton.cloneNode();
+    let decreaseFadeButton = toggleButton.cloneNode();
+    let muteButton = toggleButton.cloneNode();
 
-    arrowButton.textContent = 'Fade';
-    arrowButton.onclick = function() {
+    toggleButton.textContent = 'Fade';
+    toggleButton.onclick = function() {
         if (this.textContent == 'Fade') {
-            this.textContent = '(Fade)';
-            this.nextElementSibling.style.visibility = 'visible';
+            let muteLevel = returnMuteLevel(user_id);
+            this.textContent = `Fade (${muteLevel}%)`;
+            this.nextElementSibling.style.visibility = '';
         } else {
             this.textContent = 'Fade';
             this.nextElementSibling.style.visibility = 'collapse';
         }
     }
 
-    toggleButton.appendChild(arrowButton);
+    muteButtonFlexAnchor.appendChild(toggleButton);
 
     let buttonHolderFlex = baseColFlex();
     buttonHolderFlex.classList.add(gcaFadeElementClass);
@@ -1319,9 +1424,9 @@ function createMuteButtons(user_id) {
     buttonHolderFlex.appendChild(decreaseFadeButton);
     buttonHolderFlex.appendChild(muteButton);
 
-    toggleButton.appendChild(buttonHolderFlex);
+    muteButtonFlexAnchor.appendChild(buttonHolderFlex);
 
-    return toggleButton;
+    return muteButtonFlexAnchor;
 }
 
 
@@ -1420,17 +1525,17 @@ function messageIteration(messageContainerElement) {
     //console.log(infoButton);
     infoButton.textContent = "Info";
     infoButton.onclick = function() {
-        if (footer_info_col.style.visibility == 'visible') {
-            footer_info_col.style.visibility = 'collapse';
+        if (footer_info_col.style.visibility == 'collapse') {
+            footer_info_col.style.visibility = '';
         } else {
-            footer_info_col.style.visibility = 'visible';
+            footer_info_col.style.visibility = 'collapse';
         }
     }
     buttons.appendChild(infoButton);
 
-    let toggleButton = createMuteButtons(user_id);
+    let muteButtonFlexAnchor = createMuteButtons(user_id);
 
-    buttons.appendChild(toggleButton);
+    buttons.appendChild(muteButtonFlexAnchor);
 
 
 
@@ -1676,7 +1781,11 @@ function cleanerPageBar() {
     }
 }
 
-function fullTopicPageIteration() {
+function fullTopicPageIteration(db) {
+    mute_dict = db.mute_dict;
+    console.log('mute_dict');
+    console.log(mute_dict);
+
     bodyToFlex();
 
     resizeImages();
@@ -1771,7 +1880,9 @@ function allBoardPostsIteration() {
     }
 }
 
-function fullBoardPageIteration() {
+function fullBoardPageIteration(db) {
+    mute_dict = db.mute_dict;
+
     bodyToFlex();
     hideFatalAndClearFix();
     replyListToHamburger();
@@ -1798,11 +1909,16 @@ function fullBoardPageIteration() {
 //console.log('NICE GCA START!')
 //console.log(location.pathname);
 if (location.pathname.includes('topic')) {
-    fullTopicPageIteration();
+    browser.storage.local.get(
+        'mute_dict'
+    ).then(fullTopicPageIteration, onError);
 } else {
-    fullBoardPageIteration();
+    browser.storage.local.get(
+        'mute_dict'
+    ).then(fullBoardPageIteration, onError);
 }
 
+console.log('END Extension')
 
 
 // WHAT?
