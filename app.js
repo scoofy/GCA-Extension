@@ -1,5 +1,5 @@
 //////////// full iteration at bottom of page ////////////
-console.log('START Extension')
+//console.log('START Extension')
 //////////// CONFIG ////////////
 
 /// START DATABASE CONFIG ///
@@ -1938,7 +1938,7 @@ function fullBoardPageIteration(db) {
 //////////// LAUNCH EXTENSION ////////////
 launchExtension();
 
-console.log('END Extension')
+//console.log('END Extension')
 
 
 // WHAT?
