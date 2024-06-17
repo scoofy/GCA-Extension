@@ -930,16 +930,25 @@ function addExtensionFooterCitation() {
     listItem.appendChild(niceGcaAnchor);
     newList.appendChild(listItem);
 
-    let secondListItem = document.createElement('li');
-    let resetNiceGcaAnchor = document.createElement('a');
-    resetNiceGcaAnchor.textContent = "Reset";
-    resetNiceGcaAnchor.onclick = function() {
-        if (confirm("CAUTION! Nice GCA Extension factory reset. Are you sure you want to remove all of the data you've saved and reset the extension?") == true) {
-            factoryReset();
+    if (Object.keys(user_dict).length) { // if user_dict has been edited
+        let spacerListItem = document.createElement('li');
+        let spacerSpan = document.createElement('span');
+        spacerSpan.textContent = "\u2014";
+        spacerListItem.appendChild(spacerSpan);
+        newList.appendChild(spacerListItem);
+
+
+        let resetListItem = document.createElement('li');
+        let resetNiceGcaAnchor = document.createElement('a');
+        resetNiceGcaAnchor.textContent = "Reset Extension";
+        resetNiceGcaAnchor.onclick = function() {
+            if (confirm("CAUTION! You are about to fully reset the Nice GCA Extension. Are you sure you want to remove all of the data you've saved and reset the extension?") == true) {
+                factoryReset();
+            }
         }
+        resetListItem.appendChild(resetNiceGcaAnchor);
+        newList.appendChild(resetListItem);
     }
-    secondListItem.appendChild(resetNiceGcaAnchor);
-    newList.appendChild(secondListItem);
     resetList.insertAdjacentElement('afterend', newList);
 }
 //////////// END TOPIC & BOARD FUNCTIONS ////////////
@@ -1485,11 +1494,12 @@ function messageIteration(messageContainerElement) {
     }
     buttons.appendChild(infoButton);
 
-    let muteButtonFlexAnchor = createMuteButtons(user_id);
-
-    buttons.appendChild(muteButtonFlexAnchor);
-
-
+    // only create mute buttons if logged in
+    let loggedOut = document.getElementById('guest_form');
+    if (!loggedOut) { // if logged in
+        let muteButtonFlexAnchor = createMuteButtons(user_id);
+        buttons.appendChild(muteButtonFlexAnchor);
+    }
 
     footer_info_col.appendChild(subject_info);
     footer_info_col.appendChild(moderation);
