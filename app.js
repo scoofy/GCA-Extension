@@ -82,97 +82,6 @@ const skippableInLineElements = [
 // USE ITERATION OVER REGEX, IT'S FASTER
 // const bbCodeClosingTagRegEx = /\[\/[a-zA-Z]+\]/g
 
-var addedStyleSheet = document.createElement("style");
-addedStyleSheet.className = "gca-stylesheet";
-var myStyle = `
-    .container {
-        min-height: 0px !important;
-    }
-    .hideShowNavPillsList:hover {
-        background: #eeeeee;
-    }
-    .extensionNewInfoButton {
-        color: white;
-        padding: 8px 16px;
-        font-size: 12px;
-        line-height: 1.5;
-        border-radius: 0;
-        background-color: #5bc0de;
-        border: solid 1px #46b8da;
-        margin-bottom: 0;
-        text-align: center;
-        cursor: pointer;
-        white-space: nowrap;
-        text-decoration: none;
-        font-family: verdana, sans-serif;
-    }
-    .extensionNewInfoButton:hover {
-        color: white;
-        background-color: #31b0d5;
-        border-color: #269abc;
-        text-decoration: none;
-    }
-    .gca_fade_element:hover {
-        text-decoration: none;
-    }
-
-    @media (min-width: 768px) {
-        .gca-button {
-            visibility: collapse;
-        }
-        .gca-collapse {
-            visibility: visible !important;
-        }
-
-    }
-
-    @media (max-width: 768px) {
-        .gca-collapse {
-            visibility: collapse;
-            width: 0px;
-        }
-        .navbar-nav {
-            margin: 0px !important;
-        }
-    }
-
-    @media screen and (max-width: 575px), (max-device-width: 575px), (pointer: coarse) {
-        .wide_flex {
-            flex-direction: column;
-            justify-content: center;
-        }
-        .avatar {
-            visibility: collapse !important;
-            height: 0px !important;
-        }
-        .signature {
-            visibility: collapse !important;
-            height: 0px !important;
-            margin: 0px 0px !important;
-        }
-        .new_right_col {
-            margin: 0px !important;
-            padding: 0px !important;
-            min-width: 100% !important;
-            width: 100% !important;
-            flex-shrink: 1 !important;
-            flex-grow: 1 !important;
-        }
-        .new_right_col div {
-            margin: 0px !important;
-            padding: 0px !important;
-        }
-        .navbar-brand {
-            padding: 12px 15px;
-        }
-        #nice_gca_board_search_row {
-            flex-direction: column;
-        }
-    }
-    `;
-
-addedStyleSheet.innerText = myStyle;
-document.head.appendChild(addedStyleSheet);
 
 var base_flex = document.createElement("div");
 base_flex.style.display = "flex";
@@ -204,6 +113,8 @@ const minMuteLevel = 0;
 const middleMuteLevel = 50;
 const muteClickUnits = 10;
 
+const greyOutStandardColor = '#111';
+
 //////////// END CONFIG ////////////
 //////////// STORAGE ////////////
 function setItem() {
@@ -214,17 +125,18 @@ function onError(error) {
     console.log(error);
 }
 
-function launchFullTopicPageIteration() {
-    browser.storage.local.get(
-        'user_dict'
-    ).then(fullTopicPageIteration, onError);
+function launchExtension() {
+    if (location.pathname.includes('topic')) {
+        browser.storage.local.get(
+            'user_dict'
+        ).then(fullTopicPageIteration, onError);
+    } else {
+        browser.storage.local.get(
+            'user_dict'
+        ).then(fullBoardPageIteration, onError);
+    }
 }
 
-function launchFullBoardPageIteration() {
-    browser.storage.local.get(
-        'user_dict'
-    ).then(fullBoardPageIteration, onError);
-}
 
 function setMuteLevel(int_user_id, muteLevel) {
     let userData = user_dict[int_user_id] ? user_dict[int_user_id] : {};
@@ -265,52 +177,6 @@ function returnMuteLevelFromUserId(int_user_id) {
 function returnMuteLevelFromElement(inputElement) {
     let user_id = returnUserIDfromElement(inputElement);
     return returnMuteLevelFromUserId(user_id)
-}
-
-function decreaseMute(decreaseFadeButton) {
-    let user_id = decreaseFadeButton.dataset.userId;
-    let muteLevel = returnMuteLevelFromUserId(user_id);
-    muteLevel = Math.max(minMuteLevel, muteLevel - muteClickUnits);
-    setMuteLevel(user_id, muteLevel);
-    let toggleButton = returnSubClassSingletonElseStyleElement(decreaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
-    toggleButton.textContent = `Fade (${muteLevel}%)`;
-    muteIteration();
-    console.log(`new muteLevel: ${muteLevel}`);
-}
-
-function userIdElementCheckedRed(inputElement, outputElement) {
-    let user_id = returnUserIDfromElement(inputElement);
-    let muteLevel = returnMuteLevelFromUserId(user_id)
-    //console.log(user_id);
-    if (muteLevel) {
-        //console.log(inputElement);
-        //console.log(outputElement);
-        formatMutedElement(outputElement, muteLevel);
-        outputElement.style.border = "dashed 3px darkred";
-        return true;
-    }
-}
-
-/// END MUTE USERS UTILITIES, BUT CONTINUE UTILITIES ///
-
-
-function returnUserIDfromElement(element) {
-    let anchors = element.getElementsByTagName('a');
-    for (anchor of anchors) {
-        if (anchor.href.includes('u=')) {
-            let this_url = new URL(anchor.href);
-            let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
-            if (user_id) {
-                return user_id;
-            } else {
-                console.log('ERROR ERROR ERROR!')
-                console.log('ERROR ERROR ERROR!')
-                console.log('ERROR ERROR ERROR!')
-                console.log('ERROR ERROR ERROR!')
-                throw new Error(`${anchor.href} does not end "action" with user id `);
-            }
-        }
-    }
 }
 
 function clickCollapserButton(element) {
@@ -384,6 +250,57 @@ function returnNewCollapserElement(parentElement) {
     return collapserRow;
 }
 
+function muteNewBorderNameAndSignature(recursionElement) {
+    if (!recursionElement.dataset.muted) {
+        recursionElement.dataset.borderLeft = recursionElement.style.borderLeft;
+
+    }
+    recursionElement.style.borderLeft = '';
+    recursionElement.dataset.muted = true;
+    newLeftCol = returnSubClassSingletonElseStyleElement(recursionElement, 'new_left_col');
+    nameH4 = returnSubTagSingletonElseStyleElement(newLeftCol, 'h4');
+    if (!nameH4.dataset.muted) {
+        nameH4.dataset.opacity = nameH4.style.opacity;
+
+    }
+    nameH4.style.opacity = '25%';
+    nameH4.dataset.muted = true;
+    signature = returnSubClassSingletonElseStyleElement(newLeftCol, 'signature');
+    if (!signature.dataset.muted) {
+        signature.dataset.display = signature.style.display;
+
+    }
+    signature.style.display = 'none';
+    signature.dataset.muted = true;
+}
+
+function unmuteNewBorderNameAndSignature(recursionElement) {
+    recursionElement.style.borderLeft = recursionElement.dataset.borderLeft ? recursionElement.dataset.borderLeft : recursionElement.style.borderLeft;
+    recursionElement.dataset.muted = false;
+
+    newLeftCol = returnSubClassSingletonElseStyleElement(recursionElement, 'new_left_col');
+    nameH4 = returnSubTagSingletonElseStyleElement(newLeftCol, 'h4');
+    // just fyi... if condition ? return_true_condition: else return_false_condition;
+    nameH4.style.opacity = nameH4.dataset.opacity ? nameH4.dataset.opacity : '';
+    nameH4.dataset.muted = false;
+
+    signature = returnSubClassSingletonElseStyleElement(newLeftCol, 'signature');
+    signature.style.display = signature.dataset.display ? signature.dataset.display : '';
+    signature.dataset.muted = false;
+}
+
+function returnStandardMuteOpacityInt(muteLevel) {
+    // currently max - mute unless max mute level, then 20
+    muteOpacityInt = Math.round(maxMuteLevel - (muteLevel));
+    if (muteLevel >= middleMuteLevel) {
+        muteOpacityInt = Math.round(maxMuteLevel - (muteLevel));
+    }
+    if (muteLevel >= maxMuteLevel) {
+        muteOpacityInt = 20;
+    }
+    return muteOpacityInt;
+}
+
 function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
     let recursionElementMuteLevel = recursionElement.dataset.muteLevel;
     if (!recursionElementMuteLevel) {
@@ -396,13 +313,21 @@ function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
             let collapserButton = null;
 
             if (muteLevel == maxMuteLevel) {
-                // if element moved to max, add collapser
+                // if element moved to max,
+                // add collapser
+                // mute info
                 collapserRowElement = returnNewCollapserElement(recursionElement);
                 collapserButton = returnSubClassSingletonElseStyleElement(collapserRowElement, collapserButtonClass);
+
+                muteNewBorderNameAndSignature(recursionElement);
             } else if (recursionElementMuteLevel == maxMuteLevel) {
-                // if element was at max, remove collapser
+                // if element was at max,
+                // remove collapser
+                // unmute info
                 collapserRowElement = returnSubClassSingletonElseStyleElement(recursionElement, collapserRowClass);
                 collapserRowElement.remove();
+
+                unmuteNewBorderNameAndSignature(recursionElement);
             }
 
 
@@ -412,32 +337,32 @@ function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
                     child.classList.add(collapserButton.dataset.id);
                 }
                 if (!child.classList.contains(gcaDontFadeThisClass)) {
-                    child.style.opacity = `${Math.round(maxMuteLevel - (muteLevel))}%`;
-                    //postElement.style.color = 'Green';
-                    if (muteLevel >= middleMuteLevel) {
-                        child.style.opacity = `${Math.round(maxMuteLevel - (muteLevel))}%`;
-                        //postElement.style.color = 'GoldenRod';
-                    }
-                    if (muteLevel >= maxMuteLevel) {
-                        child.style.opacity = '20%';
-                        //postElement.style.color = 'Red';
-                    }
+                    child.style.opacity = `${returnStandardMuteOpacityInt(muteLevel)}%`;
                 }
 
             }
             // reset muteing buttons
             if (muteLevel == minMuteLevel) {
+                // no mute
+                let increaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, increaseFadeButtonClass);
+                increaseFadeButton.style.opacity = 1;
                 let decreaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, decreaseFadeButtonClass);
                 decreaseFadeButton.style.opacity = 0;
+                let muteButton = returnSubClassSingletonElseStyleElement(recursionElement, muteButtonClass);
+                muteButton.style.opacity = 1;
             } else if (muteLevel == maxMuteLevel) {
+                // full mute
                 recursionElement.insertBefore(collapserRowElement, recursionElement.firstChild);
                 clickCollapserButton(recursionElement);
 
                 let increaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, increaseFadeButtonClass);
                 increaseFadeButton.style.opacity = 0;
+                let decreaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, decreaseFadeButtonClass);
+                decreaseFadeButton.style.opacity = 1;
                 let muteButton = returnSubClassSingletonElseStyleElement(recursionElement, muteButtonClass);
                 muteButton.style.opacity = 0;
             } else {
+                // some fade
                 let decreaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, decreaseFadeButtonClass);
                 decreaseFadeButton.style.opacity = 1;
                 let increaseFadeButton = returnSubClassSingletonElseStyleElement(recursionElement, increaseFadeButtonClass);
@@ -456,9 +381,12 @@ function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
 
         // execute fade process:
 
-        // firse: get original colors, etc
+        // first: get original colors, etc
         if (!recursionElement.dataset.faded) {
-            if (recursionElement.classList.contains('btn-info')) {
+            if (recursionElement.classList.contains('label')) {
+                // skip -- do not edit
+            } else if (recursionElement.classList.contains('btn-info')) {
+                // if element is a button or a "new" label
                 recursionElement.dataset.borderColor = recursionElement.style.borderColor;
                 recursionElement.dataset.backgroundColor = recursionElement.style.backgroundColor;
             } else {
@@ -468,40 +396,69 @@ function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
                 recursionElement.dataset.display = recursionElement.style.display;
             }
         }
+        // reset faded every time
         recursionElement.dataset.faded = muteLevel > minMuteLevel
         // if not muted, restore original colors
         if (muteLevel == minMuteLevel) {
-            // just fyi... if condition ? return_true_condition: else return_false_condition;
-            if (recursionElement.classList.contains('btn-info')) {
-                recursionElement.style.borderColor = recursionElement.dataset.borderColor ? recursionElement.dataset.borderColor : '';
-                recursionElement.style.backgroundColor = recursionElement.dataset.backgroundColor ? recursionElement.dataset.backgroundColor : '';
-            } else {
-                recursionElement.style.color = recursionElement.dataset.color ? recursionElement.dataset.color : '';
-            }
-            if (recursionElement.tagName == 'IMG') {
-                recursionElement.style.display = recursionElement.dataset.display ? recursionElement.dataset.display : '';
-            }
-        } else {
-            // recursion for all lower level changes
+            restoreOriginalColor(recursionElement);
+            restoreRecursionImgElement(recursionElement);
+        } else if (muteLevel < middleMuteLevel) {
             // maninely used to set color
-
-            // buttons have white text not marked as white text
-            if (recursionElement.classList.contains('btn-info')) {
-                recursionElement.style.backgroundColor = '#bbb';
-                recursionElement.style.borderColor = '#aaa';
-
-            } else {
-                recursionElement.style.color = '#111';
-            }
-            if (muteLevel >= maxMuteLevel) {
-                if (recursionElement.tagName == 'IMG') {
-                    recursionElement.style.display = 'none';
-                }
-            }
+            greyOutRecursionElement(recursionElement);
+            restoreRecursionImgElement(recursionElement);
+        } else if (muteLevel >= middleMuteLevel) {
+            greyOutRecursionElement(recursionElement);
+            removeRecursionImgElement(recursionElement);
         }
+        // technically the maxMuteLevel edits here
+        // are the same as >= middleMuteLevel:
+        //
+        //else if (muteLevel >= maxMuteLevel) {
+        //    greyOutRecursionElement(recursionElement);
+        //    removeRecursionImgElement(recursionElement);
+        //}
     }
 }
 
+function restoreOriginalColor(recursionElement) {
+    // just fyi... if condition ? return_true_condition: else return_false_condition;
+    if (recursionElement.classList.contains('label')) {
+        // skip
+    } else if (recursionElement.classList.contains('btn-info')) {
+        // if element is a button or a "new" label
+        recursionElement.style.borderColor = recursionElement.dataset.borderColor ? recursionElement.dataset.borderColor : '';
+        recursionElement.style.backgroundColor = recursionElement.dataset.backgroundColor ? recursionElement.dataset.backgroundColor : '';
+    } else {
+        recursionElement.style.color = recursionElement.dataset.color ? recursionElement.dataset.color : '';
+    }
+}
+
+function greyOutRecursionElement(recursionElement) {
+    // recursion for all lower level changes
+    // buttons have white text not marked as white text
+    if (recursionElement.classList.contains('label')) {
+        // skip
+    } else if (recursionElement.classList.contains('btn-info')) {
+        // if element is a button or a "new" label
+        recursionElement.style.backgroundColor = '#bbb';
+        recursionElement.style.borderColor = '#aaa';
+
+    } else {
+        recursionElement.style.color = greyOutStandardColor;
+    }
+}
+
+function restoreRecursionImgElement(recursionElement) {
+    if (recursionElement.tagName == 'IMG') {
+        recursionElement.style.display = recursionElement.dataset.display ? recursionElement.dataset.display : '';
+    }
+}
+
+function removeRecursionImgElement(recursionElement) {
+    if (recursionElement.tagName == 'IMG') {
+        recursionElement.style.display = 'none';
+    }
+}
 
 function muteIteration() {
     messages = document.querySelectorAll('.message_container');
@@ -518,7 +475,7 @@ function fullMute(muteButton) {
     let toggleButton = returnSubClassSingletonElseStyleElement(muteButton.parentElement.parentElement, gcaFadeButtonClass);
     toggleButton.textContent = `Fade (${muteLevel}%)`;
     muteIteration();
-    console.log(`new muteLevel: ${muteLevel}`);
+    //console.log(`new muteLevel: ${muteLevel}`);
 }
 
 function increaseMute(increaseFadeButton) {
@@ -532,7 +489,49 @@ function increaseMute(increaseFadeButton) {
     console.log(`new muteLevel: ${muteLevel}`);
 }
 
+function decreaseMute(decreaseFadeButton) {
+    let user_id = decreaseFadeButton.dataset.userId;
+    let muteLevel = returnMuteLevelFromUserId(user_id);
+    muteLevel = Math.max(minMuteLevel, muteLevel - muteClickUnits);
+    setMuteLevel(user_id, muteLevel);
+    let toggleButton = returnSubClassSingletonElseStyleElement(decreaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
+    toggleButton.textContent = `Fade (${muteLevel}%)`;
+    muteIteration();
+    console.log(`new muteLevel: ${muteLevel}`);
+}
 
+function returnLastpostAuthorMuteLevel(elementContaningUserId) {
+    let user_id = returnUserIDfromElement(elementContaningUserId);
+    //console.log(user_id);
+    let muteLevel = returnMuteLevelFromUserId(user_id)
+    //console.log(muteLevel);
+    if (muteLevel) {
+        return muteLevel;
+    } else {
+        return minMuteLevel;
+    }
+}
+
+/// END MUTE USERS UTILITIES, BUT CONTINUE UTILITIES ///
+
+function returnUserIDfromElement(element) {
+    let anchors = element.getElementsByTagName('a');
+    for (anchor of anchors) {
+        if (anchor.href.includes('u=')) {
+            let this_url = new URL(anchor.href);
+            let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
+            if (user_id) {
+                return user_id;
+            } else {
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+                console.log('ERROR ERROR ERROR!')
+                throw new Error(`${anchor.href} does not end "action" with user id `);
+            }
+        }
+    }
+}
 
 function timeDifference(current, previous) {
     var elapsed = current - previous;
@@ -774,8 +773,6 @@ function replyListToHamburger() {
         }
     }
 }
-
-
 
 function cleanerNavBar() {
     navbar = returnSubClassSingletonElseStyleElement(body, 'navbar-fixed-top');
@@ -1254,27 +1251,30 @@ function postTimeStrToDateObj(postTimeStr) {
 function returnPostDateObj(messageContainerElement) {
     let keyInfoDiv = returnSubClassSingletonElseStyleElement(messageContainerElement, "keyinfo");
     let smallTextDiv = returnSubClassSingletonElseStyleElement(keyInfoDiv, "smalltext");
-    //console.log(smallTextDiv.textContent);
     let afterFirstColon = smallTextDiv.textContent.substring(smallTextDiv.textContent.indexOf(':') + 1);
-    //console.log(afterFirstColon);
     let postTimeStr = afterFirstColon.replace('»', '').trim();
     let relativeTimeOfPost = postTimeStrToDateObj(postTimeStr);
     return relativeTimeOfPost;
 }
 
+function returnBoardTableRowDateObj(boardTableRow) {
+    let lastpost = returnSubClassSingletonElseStyleElement(boardTableRow, 'lastpost');
+    let timeTextContent = lastpost.textContent;
+    timeTextContent = timeTextContent.trim();
+    timeTextContent = timeTextContent.split('by', 1)[0];
+    postTimeStr = timeTextContent.trim();
+    let relativeTimeOfPost = postTimeStrToDateObj(postTimeStr);
+    return relativeTimeOfPost;
+}
+
+function returnBoardTableRowTimeAgo(boardTableRow) {
+    let relativeTimeOfPost = returnBoardTableRowDateObj(boardTableRow);
+    let timeAgo = timeDifference(relativeTimeNow, relativeTimeOfPost);
+    return timeAgo;
+}
+
 function returnPostTimeAgo(messageContainerElement) {
     let relativeTimeOfPost = returnPostDateObj(messageContainerElement);
-
-
-
-    //console.log("Then:", relativeTimeOfPost);
-
-    //console.log("")
-    //console.log(dateTextNow);
-    //console.log("Now :", relativeTimeNow);
-
-    //console.log(relativeTimeNow > relativeTimeOfPost);
-
     let timeAgo = timeDifference(relativeTimeNow, relativeTimeOfPost);
     return timeAgo;
 }
@@ -1820,14 +1820,81 @@ function removeBackButton() {
     }
 }
 
+function formatMutedLastpostAuthor(lastpost, muteLevel) {
+    for (node of lastpost.childNodes) {
+        if (node.nodeName == "#text") {
+            if (node.textContent.trim()) {
+                if (node.textContent.trim().startsWith('by')) {
+                    node.textContent = '';
+                }
+            }
+        }
+    }
+    let anchors = lastpost.getElementsByTagName('a');
+    for (anchor of anchors) {
+        if (anchor.href.includes('u=')) {
+            anchor.classList.add('gca_muted_comment_author_anchor');
+            anchor.textContent = `by ${anchor.textContent}`;
+            anchor.style.textDecoration = 'none';
+            anchor.style.color = greyOutStandardColor;
+            anchor.style.cursor = 'default';
+            if (muteLevel == maxMuteLevel) {
+                anchor.style.opacity = '0%'
+            }
+        }
+    }
+}
+
+function formatMutedBoardTableRow(boardTableRow, muteLevel) {
+    // Here's my thinking, if not serious muting, do nothing
+    // mild muting could just be to remove annoying colors, etc.
+    console.log(boardTableRow);
+    console.log(muteLevel);
+    if (muteLevel >= middleMuteLevel) {
+        let lastpost = returnSubClassSingletonElseStyleElement(boardTableRow, 'lastpost');
+        let lastpostImg = returnSubTagSingletonElseStyleElement(lastpost, 'img');
+        if (muteLevel == maxMuteLevel) {
+            lastpostImg.style.opacity = "4%"
+        } else if (muteLevel >= middleMuteLevel) {
+            lastpostImg.style.opacity = "40%"
+        }
+        formatMutedLastpostAuthor(lastpost, muteLevel);
+    }
+
+}
+
+function formatBoardTableRowToUseTimeAgo(boardTableRow, timeAgo) {
+    let lastpost = returnSubClassSingletonElseStyleElement(tableRow, 'lastpost');
+
+    for (node of lastpost.childNodes) {
+        if (node.nodeName == "#text") {
+            if (node.textContent.trim()) {
+                if (!node.textContent.trim().startsWith('by')) {
+                    newSpan = document.createElement('span');
+                    newSpan.textContent = timeAgo
+                    newSpan.style.fontWeight = 'bold';
+                    node.after(newSpan);
+                    node.remove()
+                    //lastpostClone.appendChild(newSpan)
+                }
+            }
+        } else if (node.nodeName == "STRONG") {
+            // do nothing
+            node.textContent = '';
+        }
+    }
+}
+
 function allBoardPostsIteration() {
     let tBody = returnSubTagSingletonElseStyleElement(body, "tbody");
-    for (tr of tBody.children) {
-        if (tr.tagName == "TR") {
-            let lastpost = returnSubClassSingletonElseStyleElement(tr, 'lastpost');
-            let isMe = userIdElementCheckedRed(lastpost, lastpost);
-            if (isMe) {
-                tr.style.opacity = "10%";
+    for (tableRow of tBody.children) {
+        if (tableRow.tagName == "TR") {
+            let timeAgo = returnBoardTableRowTimeAgo(tableRow);
+            formatBoardTableRowToUseTimeAgo(tableRow, timeAgo);
+            let lastpost = returnSubClassSingletonElseStyleElement(tableRow, 'lastpost');
+            let muteLevel = returnLastpostAuthorMuteLevel(lastpost);
+            if (muteLevel) {
+                formatMutedBoardTableRow(tableRow, muteLevel);
             }
         }
     }
@@ -1858,17 +1925,10 @@ function fullBoardPageIteration(db) {
 }
 
 //////////// END BOARD PAGE ONLY FUNCTIONS ////////////
-//console.log('NICE GCA START!')
-//console.log('NICE GCA START!')
-//console.log('NICE GCA START!')
-//console.log('NICE GCA START!')
-//console.log('NICE GCA START!')
-//console.log(location.pathname);
-if (location.pathname.includes('topic')) {
-    launchFullTopicPageIteration();
-} else {
-    launchFullBoardPageIteration();
-}
+
+
+//////////// LAUNCH EXTENSION ////////////
+launchExtension();
 
 console.log('END Extension')
 
