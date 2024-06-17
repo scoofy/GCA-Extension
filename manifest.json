@@ -15,6 +15,9 @@
       "app.js"
     ]
   }],
+  "permissions": [
+    "storage"
+  ],
   "browser_specific_settings": {
     "gecko": {
       "id": "{8c88ff32-013a-4cb2-8fcf-9b1eb2eaec60}"

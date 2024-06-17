@@ -1,59 +1,3 @@
-/*console.log('START TEST');
-
-
-
-
-async function returnKitten(item) {
-    return await item.kitten;
-}
-
-function gotKitten(item) {
-    console.log(`${item.kitten.name} has ${item.kitten.eyeCount} eyes`);
-}
-
-function gotMonster(item) {
-    console.log(`${item.monster.name} has ${item.monster.eyeCount} eyes`);
-}
-
-function gotMuteDict(item) {
-    console.log('MUTE DICT:');
-    console.log(item)
-}
-
-
-
-// define 2 objects
-let monster = {
-    name: "Kraken",
-    tentacles: true,
-    eyeCount: 10,
-};
-
-let kitten = {
-    name: "Moggy",
-    tentacles: false,
-    eyeCount: 2,
-};
-
-// store the objects
-browser.storage.local.set({
-    kitten,
-    monster
-}).then(setItem, onError);
-
-browser.storage.local.get("kitten").then(gotKitten, onError);
-browser.storage.local.get("monster").then(gotMonster, onError);
-
-console.log('END TEST');*/
-
-function setItem() {
-    console.log("OK");
-}
-
-function onError(error) {
-    console.log(error);
-}
-
 //////////// full iteration at bottom of page ////////////
 console.log('START Extension')
 //////////// CONFIG ////////////
@@ -258,37 +202,40 @@ const muteClickUnits = 10;
 //////////// END CONFIG ////////////
 //////////// STORAGE ////////////
 var mute_dict = {}
-//console.log('INIT MUTE DICT:');
-//console.log(mute_dict);
-//if (!mute_dict) {
-//    mute_dict = {
-//        name: "mute_dict"
-//    };
-//}
 
-//const my_id = returnFormattedUserId(4878);
-//const sean_a = returnFormattedUserId(2756);
-//const chris_h = returnFormattedUserId(4880);
+function setItem() {
+    console.log("OK");
+}
 
-//mute_dict[my_id] = 100;;
-//mute_dict[sean_a] = 20;
-//mute_dict[chris_h] = 80;
+function onError(error) {
+    console.log(error);
+}
 
-//console.log(mute_dict);
-//console.log(mute_dict[`user${my_id}`]);
+function launchFullTopicPageIteration() {
+    browser.storage.local.get(
+        'mute_dict'
+    ).then(fullTopicPageIteration, onError);
+}
 
-//console.log('SET MUTE DICT');
+function launchFullBoardPageIteration() {
+    browser.storage.local.get(
+        'mute_dict'
+    ).then(fullBoardPageIteration, onError);
+}
 
-//browser.storage.local.set({
-//    'mute_dict': mute_dict
-//});
-//console.log('MUTE DICT SET');
+function setMuteLevel(user_id, userData) {
+    mute_dict[user_id] = userData;
+    browser.storage.local.set({
+        mute_dict
+    }).then(setItem, onError);
+}
 
-//mute_dict = browser.storage.local.get('mute_dict').then(gotMuteDict, onError);
-//console.log('RESET MUTE DICT:');
-//console.log(mute_dict);
-
-
+function factoryReset() {
+    mute_dict = {};
+    browser.storage.local.set({
+        mute_dict
+    }).then(setItem, onError).then(reloadPage, onError);
+}
 //////////// END STORAGE ////////////
 //////////// UTILITIES ////////////
 
@@ -325,6 +272,8 @@ function allUserIDsOnPage(element) {
 function returnMuteLevelFromUserId(user_id) {
     if (mute_dict[user_id]) {
         return mute_dict[user_id];
+    } else {
+        return 0;
     }
 }
 
@@ -341,10 +290,6 @@ function returnUserIDfromElement(element) {
             let user_num = parseInt(this_url.searchParams.get('action').split('u=')[1]);
             if (user_num) {
                 let user_id = returnFormattedUserId(user_num);
-                //if (user_id == my_id) {
-                //    console.log(this_url.search);
-                //    console.log(my_id);
-                //}
                 return user_id;
             } else {
                 console.log('ERROR ERROR ERROR!')
@@ -429,18 +374,26 @@ function returnNewCollapserElement(parentElement) {
 }
 
 function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
-    if (muteLevel != recursionElement.dataset.muteLevel) {
-        // set dataset elements
-        recursionElement.dataset.muteLevel = muteLevel;
-
+    let recursionElementMuteLevel = recursionElement.dataset.muteLevel;
+    if (!recursionElementMuteLevel) {
+        recursionElementMuteLevel = 0;
+    }
+    if (muteLevel != recursionElementMuteLevel) {
         // changes to top level of post only
         if (topLevel) {
             let collapserRowElement = null;
             let collapserButton = null;
+
             if (muteLevel == maxMuteLevel) {
+                // if element moved to max, add collapser
                 collapserRowElement = returnNewCollapserElement(recursionElement);
                 collapserButton = returnSubClassSingletonElseStyleElement(collapserRowElement, collapserButtonClass);
+            } else if (recursionElementMuteLevel == maxMuteLevel) {
+                // if element was at max, remove collapser
+                collapserRowElement = returnSubClassSingletonElseStyleElement(recursionElement, collapserRowClass);
+                collapserRowElement.remove();
             }
+
 
 
             for (child of recursionElement.children) {
@@ -448,10 +401,10 @@ function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
                     child.classList.add(collapserButton.dataset.id);
                 }
                 if (!child.classList.contains(gcaDontFadeThisClass)) {
-                    child.style.opacity = `${maxMuteLevel - (muteLevel/2)}%`;
+                    child.style.opacity = `${Math.round(maxMuteLevel - (muteLevel))}%`;
                     //postElement.style.color = 'Green';
                     if (muteLevel >= middleMuteLevel) {
-                        child.style.opacity = `${maxMuteLevel - (muteLevel/1.2)}%`;
+                        child.style.opacity = `${Math.round(maxMuteLevel - (muteLevel))}%`;
                         //postElement.style.color = 'GoldenRod';
                     }
                     if (muteLevel >= maxMuteLevel) {
@@ -482,6 +435,9 @@ function formatMutedElement(recursionElement, muteLevel, topLevel = true) {
                 muteButton.style.opacity = 1;
             }
         }
+
+        // set dataset elements
+        recursionElement.dataset.muteLevel = muteLevel;
 
         for (child of recursionElement.children) {
             formatMutedElement(child, muteLevel, topLevel = false);
@@ -556,13 +512,6 @@ function returnMuteLevel(user_id) {
         muteLevel = 0;
     }
     return muteLevel
-}
-
-function setMuteLevel(user_id, userData) {
-    mute_dict[user_id] = userData;
-    browser.storage.local.set({
-        mute_dict
-    }).then(setItem, onError);
 }
 
 function fullMute(muteButton) {
@@ -992,16 +941,36 @@ function pageLinksToButtons() {
     }
 }
 
+function reloadPage(db) {
+    location.reload();
+}
+
+
+
 function addExtensionFooterCitation() {
-    let footerSection = document.getElementById('footer_section')
+    let footerSection = document.getElementById('footer_section');
     let resetList = returnSubClassSingletonElseStyleElement(footerSection, 'reset');
 
+    let newList = document.createElement('ul');
+    newList.className = 'reset';
     let listItem = document.createElement('li');
-    let anchorSpan = document.createElement('a');
-    anchorSpan.textContent = "Nice GCA Extension";
-    anchorSpan.href = "https://github.com/scoofy/GCA-Extension";
-    listItem.appendChild(anchorSpan);
-    resetList.appendChild(listItem);
+    let niceGcaAnchor = document.createElement('a');
+    niceGcaAnchor.textContent = "Nice GCA Extension";
+    niceGcaAnchor.href = "https://github.com/scoofy/GCA-Extension";
+    listItem.appendChild(niceGcaAnchor);
+    newList.appendChild(listItem);
+
+    let secondListItem = document.createElement('li');
+    let resetNiceGcaAnchor = document.createElement('a');
+    resetNiceGcaAnchor.textContent = "Reset";
+    resetNiceGcaAnchor.onclick = function() {
+        if (confirm("CAUTION! Nice GCA Extension factory reset. Are you sure you want to remove all of the data you've saved and reset the extension?") == true) {
+            factoryReset();
+        }
+    }
+    secondListItem.appendChild(resetNiceGcaAnchor);
+    newList.appendChild(secondListItem);
+    resetList.insertAdjacentElement('afterend', newList);
 }
 //////////// END TOPIC & BOARD FUNCTIONS ////////////
 
@@ -1372,10 +1341,11 @@ function createMuteButtons(user_id) {
     let decreaseFadeButton = toggleButton.cloneNode();
     let muteButton = toggleButton.cloneNode();
 
+    let muteLevel = returnMuteLevel(user_id);
+
     toggleButton.textContent = 'Fade';
     toggleButton.onclick = function() {
         if (this.textContent == 'Fade') {
-            let muteLevel = returnMuteLevel(user_id);
             this.textContent = `Fade (${muteLevel}%)`;
             this.nextElementSibling.style.visibility = '';
         } else {
@@ -1401,6 +1371,9 @@ function createMuteButtons(user_id) {
     increaseFadeButton.onclick = function() {
         increaseMute(this);
     }
+    if (muteLevel == maxMuteLevel) {
+        increaseFadeButton.style.opacity = 0;
+    }
 
     // no adding extra classed because cloned
     decreaseFadeButton.classList.add(decreaseFadeButtonClass);
@@ -1411,6 +1384,9 @@ function createMuteButtons(user_id) {
     decreaseFadeButton.onclick = function() {
         decreaseMute(this);
     }
+    if (muteLevel == minMuteLevel) {
+        decreaseFadeButton.style.opacity = 0;
+    }
 
     // no adding classed because cloned
     muteButton.classList.add(muteButtonClass);
@@ -1418,6 +1394,9 @@ function createMuteButtons(user_id) {
     muteButton.dataset.userId = user_id;
     muteButton.onclick = function() {
         fullMute(this);
+    }
+    if (muteLevel == maxMuteLevel) {
+        muteButton.style.opacity = 0;
     }
 
     buttonHolderFlex.appendChild(increaseFadeButton);
@@ -1783,8 +1762,6 @@ function cleanerPageBar() {
 
 function fullTopicPageIteration(db) {
     mute_dict = db.mute_dict;
-    console.log('mute_dict');
-    console.log(mute_dict);
 
     bodyToFlex();
 
@@ -1909,13 +1886,9 @@ function fullBoardPageIteration(db) {
 //console.log('NICE GCA START!')
 //console.log(location.pathname);
 if (location.pathname.includes('topic')) {
-    browser.storage.local.get(
-        'mute_dict'
-    ).then(fullTopicPageIteration, onError);
+    launchFullTopicPageIteration();
 } else {
-    browser.storage.local.get(
-        'mute_dict'
-    ).then(fullBoardPageIteration, onError);
+    launchFullBoardPageIteration();
 }
 
 console.log('END Extension')
