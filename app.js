@@ -1,6 +1,11 @@
 //////////// full iteration at bottom of page ////////////
 console.log('START Extension')
 //////////// CONFIG ////////////
+
+/// START DATABASE CONFIG ///
+var user_dict = {}
+/// END DATABASE CONFIG ///
+
 const testing = false;
 
 const dimPercentage = "10%";
@@ -201,8 +206,6 @@ const muteClickUnits = 10;
 
 //////////// END CONFIG ////////////
 //////////// STORAGE ////////////
-var mute_dict = {}
-
 function setItem() {
     console.log("OK");
 }
@@ -213,67 +216,49 @@ function onError(error) {
 
 function launchFullTopicPageIteration() {
     browser.storage.local.get(
-        'mute_dict'
+        'user_dict'
     ).then(fullTopicPageIteration, onError);
 }
 
 function launchFullBoardPageIteration() {
     browser.storage.local.get(
-        'mute_dict'
+        'user_dict'
     ).then(fullBoardPageIteration, onError);
 }
 
-function setMuteLevel(user_id, userData) {
-    mute_dict[user_id] = userData;
+function setMuteLevel(int_user_id, muteLevel) {
+    let userData = user_dict[int_user_id] ? user_dict[int_user_id] : {};
+    userData['mute_level'] = muteLevel;
+    user_dict[int_user_id] = userData;
     browser.storage.local.set({
-        mute_dict
+        user_dict
     }).then(setItem, onError);
 }
 
 function factoryReset() {
-    mute_dict = {};
+    user_dict = {};
     browser.storage.local.set({
-        mute_dict
+        user_dict
     }).then(setItem, onError).then(reloadPage, onError);
 }
 //////////// END STORAGE ////////////
 //////////// UTILITIES ////////////
 
-function returnFormattedUserId(user_id) {
-    return `user${user_id}`;
-}
+//function returnFormattedUserId(user_id) {
+//    return `user${user_id}`;
+//}
 
-const blockFade = "10%";
-var user_ids = new Set([]);
-
-function allUserIDsOnPage(element) {
-    let anchors = element.getElementsByTagName('a');
-    for (anchor of anchors) {
-        if (anchor.href.includes('u=')) {
-            let this_url = new URL(anchor.href);
-            let user_num = parseInt(this_url.searchParams.get('action').split('u=')[1]);
-            if (user_num) {
-                let user_id = returnFormattedUserId(user_num)
-                user_ids.add(user_id);
-            } else {
-                console.log('ERROR ERROR ERROR!')
-                console.log('ERROR ERROR ERROR!')
-                console.log('ERROR ERROR ERROR!')
-                console.log('ERROR ERROR ERROR!')
-            }
+/// MUTE USERS UTILITIES ///
+function returnMuteLevelFromUserId(int_user_id) {
+    if (user_dict[int_user_id]) {
+        let muteLevel = user_dict[int_user_id]['mute_level']
+        if (muteLevel) {
+            return muteLevel;
+        } else {
+            return minMuteLevel;
         }
-    }
-    console.log(user_ids);
-}
-//allUserIDsOnPage(document);
-
-/// MUTE USERS ///
-
-function returnMuteLevelFromUserId(user_id) {
-    if (mute_dict[user_id]) {
-        return mute_dict[user_id];
     } else {
-        return 0;
+        return minMuteLevel;
     }
 }
 
@@ -282,14 +267,40 @@ function returnMuteLevelFromElement(inputElement) {
     return returnMuteLevelFromUserId(user_id)
 }
 
+function decreaseMute(decreaseFadeButton) {
+    let user_id = decreaseFadeButton.dataset.userId;
+    let muteLevel = returnMuteLevelFromUserId(user_id);
+    muteLevel = Math.max(minMuteLevel, muteLevel - muteClickUnits);
+    setMuteLevel(user_id, muteLevel);
+    let toggleButton = returnSubClassSingletonElseStyleElement(decreaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
+    toggleButton.textContent = `Fade (${muteLevel}%)`;
+    muteIteration();
+    console.log(`new muteLevel: ${muteLevel}`);
+}
+
+function userIdElementCheckedRed(inputElement, outputElement) {
+    let user_id = returnUserIDfromElement(inputElement);
+    let muteLevel = returnMuteLevelFromUserId(user_id)
+    //console.log(user_id);
+    if (muteLevel) {
+        //console.log(inputElement);
+        //console.log(outputElement);
+        formatMutedElement(outputElement, muteLevel);
+        outputElement.style.border = "dashed 3px darkred";
+        return true;
+    }
+}
+
+/// END MUTE USERS UTILITIES, BUT CONTINUE UTILITIES ///
+
+
 function returnUserIDfromElement(element) {
     let anchors = element.getElementsByTagName('a');
     for (anchor of anchors) {
         if (anchor.href.includes('u=')) {
             let this_url = new URL(anchor.href);
-            let user_num = parseInt(this_url.searchParams.get('action').split('u=')[1]);
-            if (user_num) {
-                let user_id = returnFormattedUserId(user_num);
+            let user_id = parseInt(this_url.searchParams.get('action').split('u=')[1]);
+            if (user_id) {
                 return user_id;
             } else {
                 console.log('ERROR ERROR ERROR!')
@@ -498,20 +509,6 @@ function muteIteration() {
         muteLevel = returnMuteLevelFromElement(message);
         formatMutedElement(message, muteLevel);
     }
-
-    ' for some reason the elements are not coming back to life '
-    ' maybe created a database of what stuff used to look like? '
-
-}
-
-
-
-function returnMuteLevel(user_id) {
-    let muteLevel = mute_dict[user_id];
-    if (!muteLevel) {
-        muteLevel = 0;
-    }
-    return muteLevel
 }
 
 function fullMute(muteButton) {
@@ -526,37 +523,13 @@ function fullMute(muteButton) {
 
 function increaseMute(increaseFadeButton) {
     let user_id = increaseFadeButton.dataset.userId;
-    let muteLevel = returnMuteLevel(user_id);
+    let muteLevel = returnMuteLevelFromUserId(user_id);
     muteLevel = Math.min(maxMuteLevel, muteLevel + muteClickUnits);
     setMuteLevel(user_id, muteLevel);
     let toggleButton = returnSubClassSingletonElseStyleElement(increaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
     toggleButton.textContent = `Fade (${muteLevel}%)`;
     muteIteration();
     console.log(`new muteLevel: ${muteLevel}`);
-}
-
-function decreaseMute(decreaseFadeButton) {
-    let user_id = decreaseFadeButton.dataset.userId;
-    let muteLevel = returnMuteLevel(user_id);
-    muteLevel = Math.max(minMuteLevel, muteLevel - muteClickUnits);
-    setMuteLevel(user_id, muteLevel);
-    let toggleButton = returnSubClassSingletonElseStyleElement(decreaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
-    toggleButton.textContent = `Fade (${muteLevel}%)`;
-    muteIteration();
-    console.log(`new muteLevel: ${muteLevel}`);
-}
-
-function userIdElementCheckedRed(inputElement, outputElement) {
-    let user_id = returnUserIDfromElement(inputElement);
-    let muteLevel = returnMuteLevelFromUserId(user_id)
-    //console.log(user_id);
-    if (muteLevel) {
-        //console.log(inputElement);
-        //console.log(outputElement);
-        formatMutedElement(outputElement, muteLevel);
-        outputElement.style.border = "dashed 3px darkred";
-        return true;
-    }
 }
 
 
@@ -1341,7 +1314,7 @@ function createMuteButtons(user_id) {
     let decreaseFadeButton = toggleButton.cloneNode();
     let muteButton = toggleButton.cloneNode();
 
-    let muteLevel = returnMuteLevel(user_id);
+    let muteLevel = returnMuteLevelFromUserId(user_id);
 
     toggleButton.textContent = 'Fade';
     toggleButton.onclick = function() {
@@ -1761,7 +1734,10 @@ function cleanerPageBar() {
 }
 
 function fullTopicPageIteration(db) {
-    mute_dict = db.mute_dict;
+    user_dict = db.user_dict;
+    if (!user_dict) {
+        user_dict = {}
+    }
 
     bodyToFlex();
 
@@ -1851,14 +1827,17 @@ function allBoardPostsIteration() {
             let lastpost = returnSubClassSingletonElseStyleElement(tr, 'lastpost');
             let isMe = userIdElementCheckedRed(lastpost, lastpost);
             if (isMe) {
-                tr.style.opacity = blockFade;
+                tr.style.opacity = "10%";
             }
         }
     }
 }
 
 function fullBoardPageIteration(db) {
-    mute_dict = db.mute_dict;
+    user_dict = db.user_dict;
+    if (!user_dict) {
+        user_dict = {}
+    }
 
     bodyToFlex();
     hideFatalAndClearFix();
