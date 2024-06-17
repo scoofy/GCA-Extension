@@ -486,7 +486,7 @@ function increaseMute(increaseFadeButton) {
     let toggleButton = returnSubClassSingletonElseStyleElement(increaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
     toggleButton.textContent = `Fade (${muteLevel}%)`;
     muteIteration();
-    console.log(`new muteLevel: ${muteLevel}`);
+    //console.log(`new muteLevel: ${muteLevel}`);
 }
 
 function decreaseMute(decreaseFadeButton) {
@@ -497,7 +497,7 @@ function decreaseMute(decreaseFadeButton) {
     let toggleButton = returnSubClassSingletonElseStyleElement(decreaseFadeButton.parentElement.parentElement, gcaFadeButtonClass);
     toggleButton.textContent = `Fade (${muteLevel}%)`;
     muteIteration();
-    console.log(`new muteLevel: ${muteLevel}`);
+    //console.log(`new muteLevel: ${muteLevel}`);
 }
 
 function returnLastpostAuthorMuteLevel(elementContaningUserId) {
@@ -1858,8 +1858,6 @@ function formatMutedLastpostAuthor(lastpost, muteLevel) {
 function formatMutedBoardTableRow(boardTableRow, muteLevel) {
     // Here's my thinking, if not serious muting, do nothing
     // mild muting could just be to remove annoying colors, etc.
-    console.log(boardTableRow);
-    console.log(muteLevel);
     if (muteLevel >= middleMuteLevel) {
         let lastpost = returnSubClassSingletonElseStyleElement(boardTableRow, 'lastpost');
         let lastpostImg = returnSubTagSingletonElseStyleElement(lastpost, 'img');
