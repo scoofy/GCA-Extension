@@ -527,7 +527,8 @@ function returnUserIDfromElement(element) {
                 console.log('ERROR ERROR ERROR!')
                 console.log('ERROR ERROR ERROR!')
                 console.log('ERROR ERROR ERROR!')
-                throw new Error(`${anchor.href} does not end "action" with user id `);
+                // user_id will not build a fade button
+                return 0;
             }
         }
     }
@@ -1497,8 +1498,10 @@ function messageIteration(messageContainerElement) {
     // only create mute buttons if logged in
     let loggedOut = document.getElementById('guest_form');
     if (!loggedOut) { // if logged in
-        let muteButtonFlexAnchor = createMuteButtons(user_id);
-        buttons.appendChild(muteButtonFlexAnchor);
+        if (user_id) {
+            let muteButtonFlexAnchor = createMuteButtons(user_id);
+            buttons.appendChild(muteButtonFlexAnchor);
+        }
     }
 
     footer_info_col.appendChild(subject_info);
