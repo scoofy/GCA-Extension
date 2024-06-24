@@ -126,14 +126,27 @@ function onError(error) {
 }
 
 function launchExtension() {
-    if (location.pathname.includes('topic')) {
-        browser.storage.local.get(
-            'user_dict'
-        ).then(fullTopicPageIteration, onError);
-    } else {
-        browser.storage.local.get(
-            'user_dict'
-        ).then(fullBoardPageIteration, onError);
+    try {
+        // if somebody's using chrome
+        if (location.pathname.includes('topic')) {
+            chrome.storage.local.get(
+                'user_dict'
+            ).then(fullTopicPageIteration, onError);
+        } else {
+            chrome.storage.local.get(
+                'user_dict'
+            ).then(fullBoardPageIteration, onError);
+        }
+    } catch (ReferenceError) {
+        if (location.pathname.includes('topic')) {
+            browser.storage.local.get(
+                'user_dict'
+            ).then(fullTopicPageIteration, onError);
+        } else {
+            browser.storage.local.get(
+                'user_dict'
+            ).then(fullBoardPageIteration, onError);
+        }
     }
 }
 
@@ -142,16 +155,30 @@ function setMuteLevel(int_user_id, muteLevel) {
     let userData = user_dict[int_user_id] ? user_dict[int_user_id] : {};
     userData['mute_level'] = muteLevel;
     user_dict[int_user_id] = userData;
-    browser.storage.local.set({
-        user_dict
-    }).then(setItem, onError);
+    try {
+        // if chromium
+        chrome.storage.local.set({
+            user_dict
+        }).then(setItem, onError);
+    } catch (ReferenceError) {
+        browser.storage.local.set({
+            user_dict
+        }).then(setItem, onError);
+    }
 }
 
 function factoryReset() {
     user_dict = {};
-    browser.storage.local.set({
-        user_dict
-    }).then(setItem, onError).then(reloadPage, onError);
+    try {
+        // if googley
+        chrome.storage.local.set({
+            user_dict
+        }).then(setItem, onError).then(reloadPage, onError);
+    } catch (ReferenceError) {
+        browser.storage.local.set({
+            user_dict
+        }).then(setItem, onError).then(reloadPage, onError);
+    }
 }
 //////////// END STORAGE ////////////
 //////////// UTILITIES ////////////

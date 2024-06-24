@@ -126,14 +126,27 @@ function onError(error) {
 }
 
 function launchExtension() {
-    if (location.pathname.includes('topic')) {
-        chrome.storage.local.get(
-            'user_dict'
-        ).then(fullTopicPageIteration, onError);
-    } else {
-        chrome.storage.local.get(
-            'user_dict'
-        ).then(fullBoardPageIteration, onError);
+    try {
+        // if somebody's using chrome
+        if (location.pathname.includes('topic')) {
+            chrome.storage.local.get(
+                'user_dict'
+            ).then(fullTopicPageIteration, onError);
+        } else {
+            chrome.storage.local.get(
+                'user_dict'
+            ).then(fullBoardPageIteration, onError);
+        }
+    } catch (ReferenceError) {
+        if (location.pathname.includes('topic')) {
+            browser.storage.local.get(
+                'user_dict'
+            ).then(fullTopicPageIteration, onError);
+        } else {
+            browser.storage.local.get(
+                'user_dict'
+            ).then(fullBoardPageIteration, onError);
+        }
     }
 }
 
@@ -142,16 +155,30 @@ function setMuteLevel(int_user_id, muteLevel) {
     let userData = user_dict[int_user_id] ? user_dict[int_user_id] : {};
     userData['mute_level'] = muteLevel;
     user_dict[int_user_id] = userData;
-    chrome.storage.local.set({
-        user_dict
-    }).then(setItem, onError);
+    try {
+        // if chromium
+        chrome.storage.local.set({
+            user_dict
+        }).then(setItem, onError);
+    } catch (ReferenceError) {
+        browser.storage.local.set({
+            user_dict
+        }).then(setItem, onError);
+    }
 }
 
 function factoryReset() {
     user_dict = {};
-    chrome.storage.local.set({
-        user_dict
-    }).then(setItem, onError).then(reloadPage, onError);
+    try {
+        // if googley
+        chrome.storage.local.set({
+            user_dict
+        }).then(setItem, onError).then(reloadPage, onError);
+    } catch (ReferenceError) {
+        browser.storage.local.set({
+            user_dict
+        }).then(setItem, onError).then(reloadPage, onError);
+    }
 }
 //////////// END STORAGE ////////////
 //////////// UTILITIES ////////////
@@ -527,7 +554,8 @@ function returnUserIDfromElement(element) {
                 console.log('ERROR ERROR ERROR!')
                 console.log('ERROR ERROR ERROR!')
                 console.log('ERROR ERROR ERROR!')
-                throw new Error(`${anchor.href} does not end "action" with user id `);
+                // user_id will not build a fade button
+                return 0;
             }
         }
     }
@@ -1497,8 +1525,10 @@ function messageIteration(messageContainerElement) {
     // only create mute buttons if logged in
     let loggedOut = document.getElementById('guest_form');
     if (!loggedOut) { // if logged in
-        let muteButtonFlexAnchor = createMuteButtons(user_id);
-        buttons.appendChild(muteButtonFlexAnchor);
+        if (user_id) {
+            let muteButtonFlexAnchor = createMuteButtons(user_id);
+            buttons.appendChild(muteButtonFlexAnchor);
+        }
     }
 
     footer_info_col.appendChild(subject_info);
