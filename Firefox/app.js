@@ -732,12 +732,17 @@ function bodyToFlex() {
 
 function hideFatalAndClearFix() {
     let element = document.getElementById('fatal_error');
-    element.style.display = "none";
+    if (element) {
+        element.style.display = "none";
+    }
     let elements = document.querySelectorAll('.clearfix');
     for (elem of elements) {
-        elem.style.display = "none";
+        if (elem) {
+            elem.style.display = "none";
+        }
     }
 }
+
 
 function replyListToHamburger() {
     let navPillsList = document.querySelectorAll('.nav-pills');
