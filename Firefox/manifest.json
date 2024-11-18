@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Nice GCA",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Nice GCA updates the archaic HTML on Golf Club Atlas's Discussion Section and adds some functionality to hide/expand sections.",
   "icons": {
     "512": "icons/android-chrome-512x512.png"
