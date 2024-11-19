@@ -1809,6 +1809,9 @@ function fullTopicPageIteration(db) {
     removeContainerHr();
     cleanerPageBar();
 
+    formatDisplayJumpTo();
+
+
     forumIteration();
     cleanerNavBar();
     pageLinksToButtons();
@@ -1903,7 +1906,6 @@ function formatMutedBoardTableRow(boardTableRow, muteLevel) {
         }
         formatMutedLastpostAuthor(lastpost, muteLevel);
     }
-
 }
 
 function formatBoardTableRowToUseTimeAgo(boardTableRow, timeAgo) {
@@ -1925,6 +1927,17 @@ function formatBoardTableRowToUseTimeAgo(boardTableRow, timeAgo) {
             // do nothing
             node.textContent = '';
         }
+    }
+}
+
+function formatDisplayJumpTo() {
+    var displayJumpTo = document.getElementById('display_jump_to');
+    if (displayJumpTo) {
+        // displayJumpTo exists
+        displayJumpTo.style.backgroundColor = 'inherit';
+        displayJumpTo.style.borderColor = 'inherit';
+        displayJumpTo.style.color = 'inherit';
+
     }
 }
 
