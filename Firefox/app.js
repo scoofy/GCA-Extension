@@ -123,6 +123,10 @@ const toTitleCaseList = [
     'IN MY OPINION',
     'CONTRIBUTIONS',
     'DISCUSSION GROUP',
+    'ABOUT',
+    'GOLF COURSES',
+    'ARTICLES & OPINION',
+    'PODCAST',
 ];
 
 function toTitleCase(str) {
