@@ -115,6 +115,29 @@ const muteClickUnits = 10;
 
 const greyOutStandardColor = '#111';
 
+const toTitleCaseList = [
+    'ARCHITECTURE TIMELINE',
+    'COURSES BY COUNTRY',
+    'FEATURE INTERVIEWS',
+    '147 CUSTODIANS',
+    'IN MY OPINION',
+    'CONTRIBUTIONS',
+    'DISCUSSION GROUP',
+];
+
+function toTitleCase(str) {
+    str.replace('\t', ' ')
+    str.replace('\n', '\n ')
+    str = str.replace(/\s+/g, ' ').trim()
+    strList = str.toLowerCase().split(' ');
+    //console.log(strList)
+    for (let i = 0; i < strList.length; i++) {
+        strList[i] = strList[i].charAt(0).toUpperCase() + strList[i].slice(1);
+    }
+    //console.log(strList)
+    return strList.join(' ');
+}
+
 //////////// END CONFIG ////////////
 //////////// STORAGE ////////////
 function setItem() {
@@ -808,9 +831,9 @@ function replyListToHamburger() {
 }
 
 function cleanerNavBar() {
-    navbar = returnSubClassSingletonElseStyleElement(body, 'navbar-fixed-top');
-    navContainer = returnSubClassSingletonElseStyleElement(navbar, 'container');
-    navContainerClone = navContainer.cloneNode()
+    let navbar = returnSubClassSingletonElseStyleElement(body, 'navbar-fixed-top');
+    let navContainer = returnSubClassSingletonElseStyleElement(navbar, 'container');
+    let navContainerClone = navContainer.cloneNode()
 
     navContainerClone.style.width = "100%";
     navContainerClone.style.display = "flex";
@@ -818,25 +841,28 @@ function cleanerNavBar() {
     navContainerClone.style.alignItems = "center";
     navContainerClone.style.flexWrap = "wrap";
 
-
-    brandSpacer = document.createElement("div");
+    // the space is for collapsing the navbar for a narrow window
+    let brandSpacer = document.createElement("div");
+    addBorder(brandSpacer, "pink");
     brandSpacer.style.display = 'flex';
     brandSpacer.style.justifyContent = 'space-between';
     brandSpacer.style.alignItems = 'center';
     brandSpacer.style.flexGrow = 2;
+    brandSpacer.dataset.extName = 'brandSpacer';
+    brandSpacer.style.width = '250px';
 
-    navbarBrand = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-brand');
-    navbarBrand.style.padding = '0px';
+    let navbarBrand = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-brand');
+    navbarBrand.style.padding = '0px 6px';
     navbarBrand.style.display = 'flex';
     navbarBrand.style.alignItems = 'center';
 
     addBorder(navbarBrand, "PowderBlue");
     brandSpacer.appendChild(navbarBrand);
 
-    brandImg = returnSubTagSingletonElseStyleElement(navbarBrand, 'img');
+    let brandImg = returnSubTagSingletonElseStyleElement(navbarBrand, 'img');
     // hard coded actual image width:
     // https://golfclubatlas.com/images/Golf-Club-Atlas-Logo.jpg
-    brandImg.style.width = '250px';
+    brandImg.style.width = 'auto';
     brandImg.style.height = 'auto';
     brandImg.style.padding = '0px 6px';
 
@@ -895,29 +921,41 @@ function cleanerNavBar() {
 
 
 
-    navbarCollapse = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-collapse');
-    collapseClassList = navbarCollapse.classList;
-    //console.log(collapseClassList);
-    for (unorderedList of navbarCollapse.children) {
-        let listItemList = [];
-        for (listItem of unorderedList.children) {
-            listItem.style.whiteSpace = 'nowrap';
-            listItem.style.width = 'fit-content !important';
+    let navbarCollapse = returnSubClassSingletonElseStyleElement(navContainer, 'navbar-collapse');
+    if (navbarCollapse) {
+        collapseClassList = navbarCollapse.classList;
+        //console.log(collapseClassList);
+        for (unorderedList of navbarCollapse.children) {
+            let listItemList = [];
+            for (listItem of unorderedList.children) {
+                listItem.style.whiteSpace = 'nowrap';
+                listItem.style.width = 'fit-content !important';
 
-            //listItem.className = '';
-            //for (thisClassName of collapseClassList) {
-            //    //listItem.classList.add(thisClassName);
-            //}
-            addBorder(listItem, "PowderBlue");
-            listItemList.push(listItem);
-        }
-        for (listItem of listItemList) {
-            //let unorderedListClone = document.createElement("ul");
-            let unorderedListClone = unorderedList.cloneNode();
-            unorderedListClone.classList.add('gca-collapse');
-            addBorder(unorderedListClone, "PowderBlue");
-            unorderedListClone.appendChild(listItem);
-            navContainerClone.appendChild(unorderedListClone);
+                for (anchor of listItem.children) {
+                    if (toTitleCaseList.includes(anchor.textContent)) {
+                        anchor.textContent = toTitleCase(anchor.textContent);
+                    }
+                }
+
+                //listItem.className = '';
+                //for (thisClassName of collapseClassList) {
+                //    //listItem.classList.add(thisClassName);
+                //}
+                addBorder(listItem, "PowderBlue");
+                listItemList.push(listItem);
+            }
+            for (listItem of listItemList) {
+                //let unorderedListClone = document.createElement("ul");
+                let unorderedListClone = unorderedList.cloneNode();
+                if (unorderedListClone.classList.contains('navbar-right')) {
+                    unorderedListClone.classList.remove('navbar-right');
+                }
+                unorderedListClone.classList.add('gca-collapse');
+                addBorder(unorderedListClone, "PowderBlue");
+                unorderedListClone.appendChild(listItem);
+                navContainerClone.appendChild(unorderedListClone);
+                addBorder(navContainerClone, "pink");
+            }
         }
     }
     navbar.appendChild(navContainerClone);
@@ -947,8 +985,6 @@ function pageLinksToButtons() {
 function reloadPage(db) {
     location.reload();
 }
-
-
 
 function addExtensionFooterCitation() {
     let footerSection = document.getElementById('footer_section');
@@ -983,6 +1019,10 @@ function addExtensionFooterCitation() {
         newList.appendChild(resetListItem);
     }
     resetList.insertAdjacentElement('afterend', newList);
+}
+
+function unCAPS(elem) {
+
 }
 //////////// END TOPIC & BOARD FUNCTIONS ////////////
 
@@ -1778,6 +1818,17 @@ function cleanerPageBar() {
     }
 }
 
+function formatDisplayJumpTo() {
+    var displayJumpTo = document.getElementById('display_jump_to');
+    if (displayJumpTo) {
+        // displayJumpTo exists
+        displayJumpTo.style.backgroundColor = 'inherit';
+        displayJumpTo.style.borderColor = 'inherit';
+        displayJumpTo.style.color = 'inherit';
+
+    }
+}
+
 function fullTopicPageIteration(db) {
     user_dict = db.user_dict;
     if (!user_dict) {
@@ -1927,17 +1978,6 @@ function formatBoardTableRowToUseTimeAgo(boardTableRow, timeAgo) {
             // do nothing
             node.textContent = '';
         }
-    }
-}
-
-function formatDisplayJumpTo() {
-    var displayJumpTo = document.getElementById('display_jump_to');
-    if (displayJumpTo) {
-        // displayJumpTo exists
-        displayJumpTo.style.backgroundColor = 'inherit';
-        displayJumpTo.style.borderColor = 'inherit';
-        displayJumpTo.style.color = 'inherit';
-
     }
 }
 
